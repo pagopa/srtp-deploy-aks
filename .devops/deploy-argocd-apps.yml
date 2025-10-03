@@ -64,7 +64,7 @@ variables:
   - name: directoryPattern
     value: 'helm/${{ parameters.ENV }}'
   - name: area
-    value: idpay
+    value: srtp
   - name: sourceBranch
     value: $[variables['Build.SourceBranch']]
   - name: buildReason
