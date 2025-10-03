@@ -1,6 +1,6 @@
 # CODEOWNERS
 
 # groups
-.github/ @pagopa/payments-cloud-admin @pagopa/idpay-app-maintainer-team
+.github/ @pagopa/payments-cloud-admin @pagopa/rtp-team-admin
 
-helm/prod @pagopa/payments-cloud-admin @pagopa/idpay-app-maintainer-team
+helm/prod @pagopa/payments-cloud-admin @pagopa/rtp-team-admin
