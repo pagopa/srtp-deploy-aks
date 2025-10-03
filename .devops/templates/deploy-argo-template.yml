@@ -132,7 +132,7 @@ jobs:
           local target_branch=$2
 
           echo "🎚️ Updating application target branch to: $target_branch"
-          if ! argocd app set "$app_name" --revision "$target_branch"; then
+          if ! argocd app set "$app_name" --revision "$target_branch" --helm-dependency-update; then
               handle_error "Failed to update app: $app_name for target branch: $target_branch"
               return 1
           fi
