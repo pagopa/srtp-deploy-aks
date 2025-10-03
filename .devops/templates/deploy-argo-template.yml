@@ -132,7 +132,7 @@ jobs:
           local target_branch=$2
 
           echo "🎚️ Updating application target branch to: $target_branch"
-          if ! argocd app set "$app_name" --revision "$target_branch" --helm-dependency-update; then
+          if ! argocd app set "$app_name" --revision "$target_branch"; then
               handle_error "Failed to update app: $app_name for target branch: $target_branch"
               return 1
           fi
@@ -193,7 +193,7 @@ jobs:
 
       # 🔄 Step 3: Sync application
       echo "🔄 Step 3: Syncing application..."
-      if ! argocd app sync "$app_name" --prune --timeout ${{ parameters.syncTimeout }}; then
+      if ! argocd app sync "$app_name" --prune --timeout ${{ parameters.syncTimeout }} --helm-dependency-update; then
           handle_error "Sync failed for $app_name"
           exit 0
       fi
