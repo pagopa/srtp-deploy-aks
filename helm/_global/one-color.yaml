@@ -1,0 +1,67 @@
+microservice-chart:
+  namespace: "srtp"
+  nameOverride: ""
+  fullnameOverride: ""
+
+  livenessProbe:
+    httpGet:
+      path: /status/live
+      port: 8080
+    initialDelaySeconds: 30
+    failureThreshold: 6
+    periodSeconds: 10
+
+    readinessProbe:
+      httpGet:
+        path: /status/ready
+        port: 8080
+      initialDelaySeconds: 30
+      failureThreshold: 6
+      periodSeconds: 10
+
+    service:
+      create: true
+      type: ClusterIP
+      ports:
+        - 8080
+
+  deployment:
+    create: true
+    topologySpreadConstraints:
+      create: true
+      useDefaultConfiguration: true
+
+  ingress:
+    create: true
+    host: srtp.itn.internal.dev.cstar.pagopa.it
+    path: /umberto/one-color(/|$)(.*)
+    rewriteTarget: /$2
+    servicePort: 8080
+
+  podAnnotations: {}
+
+  tolerations:
+    - key: "srtpOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: domain
+            operator: In
+            values:
+            - srtp
+            -
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: one-color
+          namespaces: [ "srtp" ]
+          topologyKey: topology.kubernetes.io/zone

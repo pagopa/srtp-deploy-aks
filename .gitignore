@@ -1,0 +1,5 @@
+.terraform
+.idea
+**/charts
+/.project
+/.DS_Store
