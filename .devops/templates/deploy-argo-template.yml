@@ -193,7 +193,7 @@ jobs:
 
       # 🔄 Step 3: Sync application
       echo "🔄 Step 3: Syncing application..."
-      if ! argocd app sync "$app_name" --prune --timeout ${{ parameters.syncTimeout }} --helm-dependency-update; then
+      if ! argocd app sync "$app_name" --prune --timeout ${{ parameters.syncTimeout }}; then
           handle_error "Sync failed for $app_name"
           exit 0
       fi
