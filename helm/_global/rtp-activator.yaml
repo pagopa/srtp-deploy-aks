@@ -31,7 +31,7 @@ microservice-chart:
 
   ingress:
     create: true
-    path: /rtpactivator(/|$)(.*)
+    path: /srtpactivator(/|$)(.*)
     rewriteTarget: /$2
     servicePort: 8000
     # proxyBodySize: 2m
