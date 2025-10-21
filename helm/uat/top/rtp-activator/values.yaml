@@ -7,7 +7,7 @@ microservice-chart:
     pullPolicy: Always
 
   ingress:
-    host: "srtp.internal.uat.cstar.pagopa.it"
+    host: "srtp.itn.internal.uat.cstar.pagopa.it"
 
   resources:
     requests:

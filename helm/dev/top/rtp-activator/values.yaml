@@ -8,7 +8,7 @@ microservice-chart:
 
 
   ingress:
-    host: "srtp.internal.dev.cstar.pagopa.it"
+    host: "srtp.itn.internal.dev.cstar.pagopa.it"
 
   resources:
     requests:
