@@ -1,0 +1,51 @@
+microservice-chart:
+  namespace: "rtp"
+
+  image:
+    repository: ghcr.io/pagopa/rtp-activator
+    tag: latest
+    pullPolicy: Always
+
+
+  ingress:
+    host: "srtp.internal.dev.cstar.pagopa.it"
+
+  resources:
+    requests:
+      memory: "100Mi"
+      cpu: "100m"
+    limits:
+      memory: "100Mi"
+      cpu: "100m"
+
+  autoscaling:
+    enable: false
+    minReplica: 1
+    maxReplica: 3
+    pollingInterval: 30 # seconds
+    cooldownPeriod: 300 # seconds
+    triggers:
+      - type: cpu
+        metadata:
+          type: Utilization
+          value: "60"
+
+  envConfig:
+    BASE_URL: "https://api-rtp.dev.cstar.pagopa.it/rtp/activation/activations/"
+    SP_BASE_URL: "https://api-rtp.dev.cstar.pagopa.it/rtp/rtps/"
+    EPC_MOCK_URL: "https://api-rtp.dev.cstar.pagopa.it/rtp/mock"
+    AZURE_STORAGE_ACCOUNT_NAME: "cstarditnsrtpsa"
+    CALLBACK_BASE_URL: "https://api-rtp-cb.dev.cstar.pagopa.it/rtp/cb"
+
+  keyvault:
+    name: "cstar-d-itn-srtp-kv"
+    tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
+
+  azure:
+    workloadIdentityClientId: "9e54014b-ad10-4c04-bd79-6d428563968a"
+
+  # nodeSelector: {}
+
+  # tolerations: []
+
+  # affinity: {}

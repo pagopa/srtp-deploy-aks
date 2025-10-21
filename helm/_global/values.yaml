@@ -1,0 +1,105 @@
+microservice-chart:
+  namespace: "rtp"
+
+  deployment:
+    create: true
+
+  livenessProbe:
+    httpGet:
+      path: /actuator/health/liveness
+      port: 8080
+    initialDelaySeconds: 120
+    failureThreshold: 15
+    periodSeconds: 10
+
+  readinessProbe:
+    httpGet:
+      path: /actuator/health/readiness
+      port: 8080
+    initialDelaySeconds: 35
+    failureThreshold: 15
+    periodSeconds: 10
+
+#
+# Network
+#
+
+  service:
+    create: true
+    type: ClusterIP
+    ports:
+      - 8000
+
+  ingress:
+    create: true
+    path: /rtpactivator(/|$)(.*)
+    rewriteTarget: /$2
+    servicePort: 8000
+    # proxyBodySize: 2m
+    annotations: {
+      nginx.ingress.kubernetes.io/satisfy: "any"
+    }
+
+  serviceAccount:
+    name: "cstar-d-itn-srtp-activator-id"
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    allowPrivilegeEscalation: false
+#   Should we also add the following fields to the securityContext,
+#   so the container doesn’t run as root?
+    runAsNonRoot: true
+    runAsUser: 65534
+    runAsGroup: 65534
+
+  tmpVolumeMount:
+    create: true
+    mounts:
+      - name: tmp
+        mountPath: /tmp
+      - name: logs
+        mountPath: /app/logs
+
+  envConfig:
+    TZ: "Europe/Rome"
+    OTEL_SERVICE_NAME: "rtp-activator"
+    DB_NAME: "activation"
+    OTEL_TRACES_SAMPLER: "always_on"
+    EPC_SEND_RETRY_MAX_ATTEMPTS: 1
+    EPC_SEND_RETRY_BACKOFF_MIN_DURATION_MS: 1000
+    EPC_SEND_RETRY_BACKOFF_JITTER: 0.75
+    EPC_SEND_TIMEOUT_MS: 6000
+    AZURE_STORAGE_CONTAINER_NAME: "rtp-debtor-service-provider"
+    AZURE_BLOB_NAME: "serviceregistry.json"
+    LOG_LEVEL_ROOT: "INFO"
+    LOG_LEVEL_PAGOPA: "INFO"
+    LOG_LEVEL_SPRING_INTEGRATION: "INFO"
+    LOG_LEVEL_SPRING_SECURITY: "INFO"
+    LOG_LEVEL_SPRING_WS: "INFO"
+    LOG_LEVEL_SPRING_CLOUD: "WARN"
+    LOG_LEVEL_SPRING_DATA: "INFO"
+    LOG_LEVEL_SPRING_BOOT: "INFO"
+    LOG_LEVEL_SPRING_BOOT_AVAILABILITY: "DEBUG"
+    LOG_LEVEL_SPRING_KAFKA: "INFO"
+    LOG_LEVEL_IO_SWAGGER: "WARN"
+    LOG_LEVEL_JAVAX_PERSISTENCE: "INFO"
+    LOG_LEVEL_ORG_HIBERNATE: "INFO"
+    LOG_LEVEL_MONGODB_DRIVER: "WARN"
+
+  envSecret:
+    COSMOS_ACCOUNT_RTP_CONNECTION_STRING: "cosmosdb-account-rtp-primary-connection-string"
+    APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
+    CLIENT_CERTIFICATE: "client-certificate"
+    CLIENT_SECRET_CBI: "client-secret-cbi"
+
+
+  # nodeSelector: {}
+
+  # tolerations: []
+
+  # affinity: {}
