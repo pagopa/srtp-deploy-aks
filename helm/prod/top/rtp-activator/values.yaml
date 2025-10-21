@@ -18,7 +18,7 @@ microservice-chart:
       cpu: "100m"
 
   autoscaling:
-    enable: false
+    enable: true
     minReplica: 1
     maxReplica: 3
     pollingInterval: 30
@@ -39,6 +39,3 @@ microservice-chart:
   keyvault:
     name: "cstar-p-itn-srtp-kv"
     tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
-
-  azure:
-    workloadIdentityClientId: "9c28b1b0-1191-4c0a-8a6a-1dcf733da772"

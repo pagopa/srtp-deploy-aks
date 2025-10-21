@@ -20,15 +20,15 @@ microservice-chart:
 
   autoscaling:
     enable: false
-    minReplica: 1
-    maxReplica: 3
-    pollingInterval: 30 # seconds
-    cooldownPeriod: 300 # seconds
-    triggers:
-      - type: cpu
-        metadata:
-          type: Utilization
-          value: "60"
+#    minReplica: 1
+#    maxReplica: 3
+#    pollingInterval: 30 # seconds
+#    cooldownPeriod: 300 # seconds
+#    triggers:
+#      - type: cpu
+#        metadata:
+#          type: Utilization
+#          value: "60"
 
   envConfig:
     BASE_URL: "https://api-rtp.dev.cstar.pagopa.it/rtp/activation/activations/"
@@ -40,9 +40,6 @@ microservice-chart:
   keyvault:
     name: "cstar-d-itn-srtp-kv"
     tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
-
-  azure:
-    workloadIdentityClientId: "9e54014b-ad10-4c04-bd79-6d428563968a"
 
   # nodeSelector: {}
 

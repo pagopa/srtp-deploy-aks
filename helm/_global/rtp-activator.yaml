@@ -3,6 +3,9 @@ microservice-chart:
 
   deployment:
     create: true
+    topologySpreadConstraints:
+      create: true
+      useDefaultConfiguration: true
 
   livenessProbe:
     httpGet:
@@ -19,10 +22,6 @@ microservice-chart:
     initialDelaySeconds: 35
     failureThreshold: 15
     periodSeconds: 10
-
-#
-# Network
-#
 
   service:
     create: true
@@ -51,8 +50,6 @@ microservice-chart:
 
   securityContext:
     allowPrivilegeEscalation: false
-#   Should we also add the following fields to the securityContext,
-#   so the container doesn’t run as root?
     runAsNonRoot: true
     runAsUser: 65534
     runAsGroup: 65534
