@@ -31,9 +31,9 @@ microservice-chart:
 
   ingress:
     create: true
-    path: /srtpactivator(/|$)(.*)
+    path: /rtpactivator(/|$)(.*)
     rewriteTarget: /$2
-    servicePort: 8000
+    servicePort: 8080
     # proxyBodySize: 2m
     annotations: {
       nginx.ingress.kubernetes.io/satisfy: "any"
