@@ -39,9 +39,6 @@ microservice-chart:
       nginx.ingress.kubernetes.io/satisfy: "any"
     }
 
-  serviceAccount:
-    name: "cstar-d-itn-srtp-activator-id"
-
   podAnnotations: {}
 
   podSecurityContext:
