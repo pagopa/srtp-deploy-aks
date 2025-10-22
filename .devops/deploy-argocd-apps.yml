@@ -30,19 +30,17 @@ parameters:
   displayName: Top ArgoCD Apps. Set to [] to skip deployment.
   type: object
   default:
-    -
+    - rtp-activator
 
 - name: APPS_MID
   displayName: Mid ArgoCD Apps. Set to [] to skip deployment.
   type: object
-  default:
-    - CHANGEME
+  default: []
 
 - name: APPS_EXT
   displayName: Extra ArgoCD Apps. Set to [] to skip deployment.
   type: object
-  default:
-    - CHANGEME
+  default: []
 
 - name: POSTMAN_BRANCH
   displayName: Postman branch
