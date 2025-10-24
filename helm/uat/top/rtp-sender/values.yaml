@@ -1,0 +1,48 @@
+microservice-chart:
+  namespace: "srtp"
+
+  image:
+    repository: ghcr.io/pagopa/rtp-sender
+    tag: "1.57.2-RC"
+    pullPolicy: Always
+
+  ingress:
+    host: "srtp.itn.internal.uat.cstar.pagopa.it"
+
+  resources:
+    requests:
+      memory: "100Mi"
+      cpu: "100m"
+    limits:
+      memory: "100Mi"
+      cpu: "100m"
+
+  autoscaling:
+    enable: false
+#    minReplica: 1
+#    maxReplica: 3
+#    pollingInterval: 30
+#    cooldownPeriod: 300
+#    triggers:
+#      - type: cpu
+#        metadata:
+#          type: Utilization
+#          value: "60"
+
+  envConfig:
+    BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/activation/"
+    SP_BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/rtps/"
+    PAYEES_REGISTRY_BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/payees/"
+    EPC_MOCK_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/mock"
+    AZURE_STORAGE_ACCOUNT_NAME: "cstaruitnsrtpsa"
+    CALLBACK_BASE_URL: "https://api-rtp-cb.uat.cstar.pagopa.it/rtp/cb"
+    GDP_EVENTHUB_NAME: "pagopa-u-itn-gps-rtp-integration-evh"
+    GDP_EVENTHUB_TOPIC: "rtp-events"
+    GDP_EVENTHUB_CONSUMER_GROUP: "rtp-events-processor"
+    REGISTRY_DATA_CACHE_TTL: "PT5M"
+    PAYEES_REGISTRY_DATA_CACHE_TTL: "PT5M"
+    MIL_AUTH_TOKEN_URL: "https://api-mcshared.uat.cstar.pagopa.it/auth/token"
+
+  keyvault:
+    name: "cstar-u-itn-srtp-kv"
+    tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
