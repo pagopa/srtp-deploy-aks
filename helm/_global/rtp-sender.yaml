@@ -57,6 +57,8 @@ microservice-chart:
       - name: jks
         readOnly: true
         mountOptions: "dir_mode=0555,file_mode=0444"
+        secretName: azure-files-secret
+        shareName: cstar-d-itn-srtp-jks-file-share
 
   tmpVolumeMount:
     create: true
