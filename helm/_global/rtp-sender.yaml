@@ -51,6 +51,13 @@ microservice-chart:
     runAsUser: 65534
     runAsGroup: 65534
 
+  providedVolumeMount:
+    create: true
+    folders:
+      - name: jks
+        readOnly: true
+        mountOptions: "dir_mode=0555,file_mode=0444"
+
   tmpVolumeMount:
     create: true
     mounts:
@@ -58,6 +65,10 @@ microservice-chart:
         mountPath: /tmp
       - name: logs
         mountPath: /app/logs
+
+  extraVolumeMounts:
+    - name: file-azure-jks
+      mountPath: /mnt/jks
 
   envConfig:
     TZ: "Europe/Rome"
