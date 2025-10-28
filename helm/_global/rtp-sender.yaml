@@ -51,14 +51,19 @@ microservice-chart:
     runAsUser: 65534
     runAsGroup: 65534
 
-  providedVolumeMount:
-    create: true
-    folders:
-      - name: jks
+  extraVolumes:
+    - name: file-azure-jks
+      csi:
+        driver: file.csi.azure.com
         readOnly: true
-        mountOptions: "dir_mode=0555,file_mode=0444"
-        secretName: azure-files-secret
-        shareName: cstar-d-itn-srtp-jks-file-share
+        volumeAttributes:
+          secretName: azure-files-secret
+          shareName: cstar-d-itn-srtp-jks-file-share
+          mountOptions: dir_mode=0555,file_mode=0444
+
+  extraVolumeMounts:
+    - name: file-azure-jks
+      mountPath: /mnt/jks
 
   tmpVolumeMount:
     create: true
@@ -67,10 +72,6 @@ microservice-chart:
         mountPath: /tmp
       - name: logs
         mountPath: /app/logs
-
-  extraVolumeMounts:
-    - name: file-azure-jks
-      mountPath: /mnt/jks
 
   envConfig:
     TZ: "Europe/Rome"
