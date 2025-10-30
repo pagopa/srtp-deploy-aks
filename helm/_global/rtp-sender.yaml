@@ -1,6 +1,26 @@
 microservice-chart:
   namespace: "srtp"
 
+  image:
+    volumeMounts:
+      - mountPath: /mnt/jks/
+        name: jks
+
+  initContainers:
+    - name: copy-jks
+      image:
+        repository: busybox
+        tag: 1.36.1@sha256:355b3a1bf5609da364166913878a8508d4ba30572d02020a97028c75477e24ff
+        pullPolicy: Always
+      command: ['sh', '-c', "mkdir -p /mnt/jks/ && cp /mnt/share/* /mnt/jks/"]
+      tmpVolumeMount:
+        create: true
+        mounts:
+          - name: share-volume
+            mountPath: /mnt/share
+          - name: jks
+            mountPath: "/mnt/jks/"
+
   deployment:
     create: true
     topologySpreadConstraints:
@@ -31,7 +51,7 @@ microservice-chart:
 
   ingress:
     create: true
-    path: /rtpactivator(/|$)(.*)
+    path: /rtpsender(/|$)(.*)
     rewriteTarget: /$2
     servicePort: 8080
     # proxyBodySize: 2m
@@ -58,11 +78,13 @@ microservice-chart:
         mountPath: /tmp
       - name: logs
         mountPath: /app/logs
+      - name: jks
+        mountPath: /mnt/jks/
 
   envConfig:
     TZ: "Europe/Rome"
-    OTEL_SERVICE_NAME: "rtp-activator"
-    DB_NAME: "activation"
+    OTEL_SERVICE_NAME: "rtp-sender"
+    DB_NAME: "rtp"
     OTEL_TRACES_SAMPLER: "always_on"
     EPC_SEND_RETRY_MAX_ATTEMPTS: "1"
     EPC_SEND_RETRY_BACKOFF_MIN_DURATION_MS: "1000"
@@ -90,6 +112,13 @@ microservice-chart:
     APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
     CLIENT_CERTIFICATE: "client-certificate"
     CLIENT_SECRET_CBI: "client-secret-cbi"
+    JKS_TRUST_STORE_PATH: "jks-trust-store-path"
+    JKS_TRUST_STORE_PASSWORD: "jks-trust-store-password"
+    GDP_EVENTHUB_CONNECTION_STRING: "gdp-eventhub-connection-string"
+    MIL_AUTH_CLIENT_SECRET: "mil-auth-client-secret"
+    MIL_AUTH_CLIENT_ID: "mil-auth-client-id"
+    READ_RTP_PAYEES_CLIENT_ID: "read-rtp-payees-client-id"
+    READ_RTP_PAYEES_CLIENT_SECRET: "read-rtp-payees-client-secret"
 
 
   tolerations:
