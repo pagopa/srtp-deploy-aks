@@ -71,23 +71,6 @@ microservice-chart:
     runAsUser: 65534
     runAsGroup: 65534
 
-  persistentVolumeClaimsMounts:
-    create: true
-    mounts:
-      - name: jks
-        mountPath: /mnt/jks
-        pvcName: cstar-d-itn-srtp-jks-file-share
-
-  extraVolumes:
-    - name: file-azure-jks
-      csi:
-        driver: file.csi.azure.com
-        readOnly: true
-        volumeAttributes:
-          secretName: azure-files-secret
-          shareName: cstar-d-itn-srtp-jks-file-share
-          mountOptions: dir_mode=0555,file_mode=0444
-
   tmpVolumeMount:
     create: true
     mounts:
