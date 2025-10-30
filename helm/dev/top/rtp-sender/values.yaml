@@ -6,7 +6,6 @@ microservice-chart:
     tag: latest
     pullPolicy: Always
 
-
   ingress:
     host: "srtp.itn.internal.dev.cstar.pagopa.it"
 
@@ -47,6 +46,13 @@ microservice-chart:
   keyvault:
     name: "cstar-d-itn-srtp-kv"
     tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
+
+  azureFile:
+    create: true
+    mounts:
+      - shareName: cstar-d-itn-srtp-jks-file-share
+        name: share-volume
+        readOnly: true
 
   # nodeSelector: {}
 
