@@ -121,8 +121,18 @@ microservice-chart:
     READ_RTP_PAYEES_CLIENT_SECRET: "read-rtp-payees-client-secret"
 
 
-  # nodeSelector: {}
+  tolerations:
+    - key: "srtpOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
 
-  # tolerations: []
-
-  # affinity: {}
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: "domain"
+                operator: "In"
+                values:
+                  - "srtp"
