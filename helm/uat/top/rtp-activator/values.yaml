@@ -44,5 +44,5 @@ postman-test:
   run: true
   repoName: rtp-activator
   dir: postman
-  collectionName: "RTP-component-test.postman_collection.json"
-  envVariablesFile: "rtp.UAT.postman_environment.json" #inside azdo secure files
+  collectionName: "rtp-activator-E2E.postman_collection.json"
+  envVariablesFile: "rtp_uat.postman_environment.json" #inside azdo secure files
