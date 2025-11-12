@@ -53,3 +53,10 @@ microservice-chart:
       - shareName: cstar-u-itn-srtp-jks-file-share
         name: share-volume
         readOnly: true
+
+postman-test:
+  run: true
+  repoName: rtp-sender
+  dir: postman
+  collectionName: "RTP-component-test.postman_collection.json"
+  envVariablesFile: "rtp.UAT.postman_environment.json" #inside azdo secure files
