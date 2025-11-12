@@ -208,7 +208,7 @@ stages:
 
 #   Stage for Postman Tests
   - stage: run_postman_tests
-    condition: and(succeeded(), eq(parameters.ENV, 'uat'))
+    condition: and(succeeded(), or(${{eq(parameters.ENV, 'uat')}}))
     dependsOn: sync_argo_apps
     jobs:
       #  Top Apps Tests
