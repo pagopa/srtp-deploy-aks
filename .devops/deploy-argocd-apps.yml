@@ -46,7 +46,7 @@ parameters:
 - name: POSTMAN_BRANCH
   displayName: Postman branch
   type: string
-  default: 'develop'
+  default: 'uat'
 
 - name: ARGOCD_TARGET_BRANCH
   displayName: ArgoCD target branch

@@ -36,7 +36,7 @@ parameters:
   - name: postmanBranch
     displayName: 'Postman Tests Branch'
     type: string
-    default: 'uat'
+    default: 'develop'
     # Branch contenente i test Postman
 
   # Numero massimo di tentativi per test falliti
