@@ -231,7 +231,8 @@ jobs:
           cert_b64=$(az keyvault secret show --name "${{ parameters.clientCertSecret }}" --vault-name "${{ parameters.keyVaultName }}" --query 'value' -o tsv)
           key_b64=$(az keyvault secret show --name "${{ parameters.clientKeySecret }}" --vault-name "${{ parameters.keyVaultName }}" --query 'value' -o tsv)
 
-          echo "$cert_b64" | base64 -d > $(Pipeline.Workspace)/certs/certificate.crt
+          echo "$cert_b64" | base64 -d > $(Pipeline.Workspace)/certs/certificate.der
+          openssl x509 -inform DER -in $(Pipeline.Workspace)/certs/certificate.der -out $(Pipeline.Workspace)/certs/certificate.crt  
           echo "$key_b64"  | base64 -d > $(Pipeline.Workspace)/certs/private.key
           chmod 600 $(Pipeline.Workspace)/certs/private.key
           echo "✅ Certificates written under $(Pipeline.Workspace)/certs"
