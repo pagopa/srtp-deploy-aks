@@ -246,7 +246,7 @@ jobs:
           chmod 600 $(Pipeline.Workspace)/certs/private.key
           echo "✅ Certificate and key written under $(Pipeline.Workspace)/certs"
 
-
+#    To use the cert and private key from Devops Secure File
 #    - task: DownloadSecureFile@1
 #      name: downloadCert
 #      inputs:

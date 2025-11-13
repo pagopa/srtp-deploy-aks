@@ -208,8 +208,8 @@ stages:
 
 #   Stage for Postman Tests
   - stage: run_postman_tests
-    condition: and(always(), ${{eq(parameters.ENV, 'uat')}})
-#    dependsOn: sync_argo_apps
+    condition: and(succeeded(), ${{eq(parameters.ENV, 'uat')}})
+    dependsOn: sync_argo_apps
     jobs:
       #  Top Apps Tests
       - ${{ if and(ne(length(parameters.APPS_TOP), 0), ne(parameters.APPS_TOP, '[]')) }}:
