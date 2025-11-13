@@ -217,48 +217,49 @@ jobs:
           echo "##vso[task.setvariable variable=postmanEnvFile]$(Pipeline.Workspace)/postman/environment.json"
           echo "✅ Secret fetched and validated successfully"
 
-    - task: AzureCLI@2
-      name: fetchCertAndKey
-      displayName: 'Fetch SSL certificate and key from Key Vault'
+#    - task: AzureCLI@2
+#      name: fetchCertAndKey
+#      displayName: 'Fetch SSL certificate and key from Key Vault'
+#      inputs:
+#        azureSubscription: '${{ parameters.azureServiceConnection }}'
+#        scriptType: 'bash'
+#        scriptLocation: 'inlineScript'
+#        inlineScript: |
+#          mkdir -p $(Pipeline.Workspace)/certs
+#          echo "🔐 Fetching certificate and key from Key Vault..."
+#
+#          cert=$(az keyvault secret show \
+#            --name "${{ parameters.clientCertSecret }}" \
+#            --vault-name "${{ parameters.keyVaultName }}" \
+#            --query 'value' -o tsv)
+#
+#          key=$(az keyvault secret show \
+#            --name "${{ parameters.clientKeySecret }}" \
+#            --vault-name "${{ parameters.keyVaultName }}" \
+#            --query 'value' -o tsv)
+#
+#          echo "$cert" > $(Pipeline.Workspace)/certs/certificate.crt
+#          echo "$key"  > $(Pipeline.Workspace)/certs/private.key
+#
+#          chmod 600 $(Pipeline.Workspace)/certs/private.key
+#          echo "✅ Certificate and key stored under $(Pipeline.Workspace)/certs"
+
+    - task: DownloadSecureFile@1
+      name: downloadCert
       inputs:
-        azureSubscription: '${{ parameters.azureServiceConnection }}'
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          mkdir -p $(Pipeline.Workspace)/certs
-          echo "🔐 Fetching certificate and key from Key Vault..."
+        secureFile: 'rtp-callback-certificate.crt'
 
-          cert=$(az keyvault secret show \
-            --name "${{ parameters.clientCertSecret }}" \
-            --vault-name "${{ parameters.keyVaultName }}" \
-            --query 'value' -o tsv)
-
-          key=$(az keyvault secret show \
-            --name "${{ parameters.clientKeySecret }}" \
-            --vault-name "${{ parameters.keyVaultName }}" \
-            --query 'value' -o tsv)
-
-          echo "$cert" > $(Pipeline.Workspace)/certs/certificate.crt
-          echo "$key"  > $(Pipeline.Workspace)/certs/private.key
-
-          chmod 600 $(Pipeline.Workspace)/certs/private.key
-          echo "✅ Certificate and key stored under $(Pipeline.Workspace)/certs"
-
-    - task: Bash@3
-      name: verifyCertStructure
-      displayName: 'Verify PEM structure and encoding'
+    - task: DownloadSecureFile@1
+      name: downloadKey
       inputs:
-        targetType: 'inline'
-        script: |
-          echo "🔍 Checking PEM structure..."
-          grep -q "BEGIN CERTIFICATE" $(Pipeline.Workspace)/certs/certificate.crt || echo "❌ Missing BEGIN CERTIFICATE"
-          grep -q "END CERTIFICATE" $(Pipeline.Workspace)/certs/certificate.crt || echo "❌ Missing END CERTIFICATE"
-          grep -q "BEGIN RSA PRIVATE KEY" $(Pipeline.Workspace)/certs/private.key || echo "❌ Missing BEGIN RSA PRIVATE KEY"
-          grep -q "END RSA PRIVATE KEY" $(Pipeline.Workspace)/certs/private.key || echo "❌ Missing END RSA PRIVATE KEY"
+        secureFile: 'rtp-callback-private-key.pem'
 
-          echo "File types:"
-          file -i $(Pipeline.Workspace)/certs/certificate.crt
-          file -i $(Pipeline.Workspace)/certs/private.key
+    - bash: |
+        mkdir -p $(Pipeline.Workspace)/certs
+        cp $(downloadCert.secureFilePath) $(Pipeline.Workspace)/certs/certificate.crt
+        cp $(downloadKey.secureFilePath) $(Pipeline.Workspace)/certs/private.key
+        chmod 600 $(Pipeline.Workspace)/certs/private.key
+        echo "✅ Certificate and key copied from Secure Files"
 
     - task: NodeTool@0
       displayName: 'Install Node.js'
