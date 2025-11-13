@@ -46,7 +46,7 @@ parameters:
 - name: POSTMAN_BRANCH
   displayName: Postman branch
   type: string
-  default: 'develop'
+  default: 'main'
 
 - name: ARGOCD_TARGET_BRANCH
   displayName: ArgoCD target branch
@@ -208,7 +208,7 @@ stages:
 
 #   Stage for Postman Tests
   - stage: run_postman_tests
-    condition: and(succeeded(), or(${{eq(parameters.ENV, 'dev')}}, ${{eq(parameters.ENV, 'uat')}}))
+    condition: and(succeeded(), ${{eq(parameters.ENV, 'uat')}})
     dependsOn: sync_argo_apps
     jobs:
       #  Top Apps Tests

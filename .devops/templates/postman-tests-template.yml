@@ -271,7 +271,7 @@ jobs:
 
           # Clone test repository
           echo "📦 Cloning test repository..."
-          if ! git clone -b ${{ parameters.postmanBranch }} https://github.com/pagopa/$(repoName).git; then
+          if ! git clone -b ${{ parameters.postmanBranch }} https://$(GITHUB_USER):$(GITHUB_TOKEN)@github.com/pagopa/$(repoName).git; then
             handle_error "Failed to clone repository"
             exit 1
           fi
