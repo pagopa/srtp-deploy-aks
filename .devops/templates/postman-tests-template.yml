@@ -311,7 +311,8 @@ jobs:
                 --reporters cli,junit \
                 --reporter-junit-export result/test-result.xml \
                 --ssl-client-cert $(Pipeline.Workspace)/certs/certificate.crt \
-                --ssl-client-key $(Pipeline.Workspace)/certs/private.key; then
+                --ssl-client-key $(Pipeline.Workspace)/certs/private.key \
+                --timeout ${{ parameters.collectionTimeout }}000; then
                 return 0
               fi
 
