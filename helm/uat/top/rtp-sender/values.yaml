@@ -11,11 +11,11 @@ microservice-chart:
 
   resources:
     requests:
-      memory: "100Mi"
-      cpu: "100m"
+      cpu: "250m"
+      memory: "512Mi"
     limits:
-      memory: "100Mi"
-      cpu: "100m"
+      cpu: "250m"
+      memory: "512Mi"
 
   autoscaling:
     enable: false
@@ -53,3 +53,10 @@ microservice-chart:
       - shareName: cstar-u-itn-srtp-jks-file-share
         name: share-volume
         readOnly: true
+
+postman-test:
+  run: true
+  repoName: rtp-sender
+  dir: postman
+  collectionName: "rtp-sender-E2E.postman_collection.json"
+  envVariablesFile: "rtp_uat.postman_environment.json" #inside azdo secure files
