@@ -244,6 +244,22 @@ jobs:
           chmod 600 $(Pipeline.Workspace)/certs/private.key
           echo "✅ Certificate and key stored under $(Pipeline.Workspace)/certs"
 
+    - task: Bash@3
+      name: verifyCertStructure
+      displayName: 'Verify PEM structure and encoding'
+      inputs:
+        targetType: 'inline'
+        script: |
+          echo "🔍 Checking PEM structure..."
+          grep -q "BEGIN CERTIFICATE" $(Pipeline.Workspace)/certs/certificate.crt || echo "❌ Missing BEGIN CERTIFICATE"
+          grep -q "END CERTIFICATE" $(Pipeline.Workspace)/certs/certificate.crt || echo "❌ Missing END CERTIFICATE"
+          grep -q "BEGIN RSA PRIVATE KEY" $(Pipeline.Workspace)/certs/private.key || echo "❌ Missing BEGIN RSA PRIVATE KEY"
+          grep -q "END RSA PRIVATE KEY" $(Pipeline.Workspace)/certs/private.key || echo "❌ Missing END RSA PRIVATE KEY"
+
+          echo "File types:"
+          file -i $(Pipeline.Workspace)/certs/certificate.crt
+          file -i $(Pipeline.Workspace)/certs/private.key
+
     - task: NodeTool@0
       displayName: 'Install Node.js'
       inputs:
