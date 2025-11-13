@@ -69,6 +69,17 @@ parameters:
     type: string
     # Nome della Azure Service Connection per l'accesso al Key Vault
 
+  - name: clientCertSecret
+    displayName: 'Client certificate secret (base64)'
+    type: string
+    default: 'client-certificate'
+
+  - name: clientKeySecret
+    displayName: 'Private key secret (base64)'
+    type: string
+    default: 'le-private-key-json'
+
+
 jobs:
 - job: postman_${{ parameters.appCategory }}
   displayName: '🛃 ${{ parameters.appCategory }}'
@@ -206,6 +217,25 @@ jobs:
           echo "##vso[task.setvariable variable=postmanEnvFile]$(Pipeline.Workspace)/postman/environment.json"
           echo "✅ Secret fetched and validated successfully"
 
+    - task: AzureCLI@2
+      name: fetchCertAndKey
+      displayName: 'Fetch SSL certificate and key from Key Vault'
+      inputs:
+        azureSubscription: '${{ parameters.azureServiceConnection }}'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          mkdir -p $(Pipeline.Workspace)/certs
+          echo "🔐 Fetching certificate and key from Key Vault..."
+
+          cert_b64=$(az keyvault secret show --name "${{ parameters.clientCertSecret }}" --vault-name "${{ parameters.keyVaultName }}" --query 'value' -o tsv)
+          key_b64=$(az keyvault secret show --name "${{ parameters.clientKeySecret }}" --vault-name "${{ parameters.keyVaultName }}" --query 'value' -o tsv)
+
+          echo "$cert_b64" | base64 -d > $(Pipeline.Workspace)/certs/certificate.crt
+          echo "$key_b64"  | base64 -d > $(Pipeline.Workspace)/certs/private.key
+          chmod 600 $(Pipeline.Workspace)/certs/private.key
+          echo "✅ Certificates written under $(Pipeline.Workspace)/certs"
+
     - task: NodeTool@0
       displayName: 'Install Node.js'
       inputs:
@@ -243,10 +273,11 @@ jobs:
 
               # Run Newman with specified configuration
               if newman run $(collectionName) \
-                 -e $(postmanEnvFile) \
-                 --reporters cli,junit \
-                 --reporter-junit-export result/test-result.xml \
-                 --timeout ${{ parameters.collectionTimeout }}000; then
+                -e $(postmanEnvFile) \
+                --reporters cli,junit \
+                --reporter-junit-export result/test-result.xml \
+                --ssl-client-cert $(Pipeline.Workspace)/certs/certificate.crt \
+                --ssl-client-key $(Pipeline.Workspace)/certs/private.key; then
                 return 0
               fi
 
