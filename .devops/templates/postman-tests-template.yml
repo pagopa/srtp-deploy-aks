@@ -261,6 +261,12 @@ jobs:
         chmod 600 $(Pipeline.Workspace)/certs/private.key
         echo "✅ Certificate and key copied from Secure Files"
 
+    - bash: |
+        echo "🔧 Normalizing PEM format..."
+        dos2unix $(Pipeline.Workspace)/certs/*.*
+        file $(Pipeline.Workspace)/certs/*
+        head -n 2 $(Pipeline.Workspace)/certs/certificate.crt
+
     - task: NodeTool@0
       displayName: 'Install Node.js'
       inputs:
