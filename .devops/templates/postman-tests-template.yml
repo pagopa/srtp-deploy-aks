@@ -243,8 +243,8 @@ jobs:
           echo "$cert_b64" | base64 -d > $(Pipeline.Workspace)/certs/certificate.crt
           echo "$key_b64"  | base64 -d > $(Pipeline.Workspace)/certs/private.key
 
-          # Normalize line endings just in case
-          dos2unix $(Pipeline.Workspace)/certs/* >/dev/null 2>&1 || true
+          # Normalize line endings
+#          dos2unix $(Pipeline.Workspace)/certs/* >/dev/null 2>&1 || true
 
           chmod 600 $(Pipeline.Workspace)/certs/private.key
           echo "✅ Certificate and key written under $(Pipeline.Workspace)/certs"
