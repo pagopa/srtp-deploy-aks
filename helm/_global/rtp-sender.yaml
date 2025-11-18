@@ -109,6 +109,7 @@ microservice-chart:
     LOG_LEVEL_JAVAX_PERSISTENCE: "INFO"
     LOG_LEVEL_ORG_HIBERNATE: "INFO"
     LOG_LEVEL_MONGODB_DRIVER: "WARN"
+    FEATURE_TOGGLE_ENABLE_LAST_PROCESSED_TIMESTAMP: "true"
 
   envSecret:
     COSMOS_ACCOUNT_RTP_CONNECTION_STRING: "cosmosdb-account-rtp-primary-connection-string"
