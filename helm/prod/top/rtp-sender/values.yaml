@@ -42,6 +42,7 @@ microservice-chart:
     REGISTRY_DATA_CACHE_TTL: "P1D"
     PAYEES_REGISTRY_DATA_CACHE_TTL: "PT3H"
     MIL_AUTH_TOKEN_URL: "https://api-mcshared.cstar.pagopa.it/auth/token"
+    FEATURE_TOGGLE_ENABLE_LAST_PROCESSED_TIMESTAMP: "true"
 
   keyvault:
     name: "cstar-p-itn-srtp-kv"
