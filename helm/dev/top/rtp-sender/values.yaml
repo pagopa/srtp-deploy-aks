@@ -3,7 +3,7 @@ microservice-chart:
 
   image:
     repository: ghcr.io/pagopa/rtp-sender
-    tag: snapshot-main
+    tag: snapshot-main@sha256:6a3b54b39268b87a9852f451ca2ad37f51398446203de730daf5f98da495a326
     pullPolicy: Always
 
   ingress:
