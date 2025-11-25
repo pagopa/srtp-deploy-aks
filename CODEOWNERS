@@ -1,6 +1,6 @@
 # CODEOWNERS
 
-* @pagopa/rtp-team-admin
+* @pagopa/rtp-team-admin @pagopa/rtp-team @fmuscianisi @davideragusi29 @michele-fucito
 
 # groups
 .github/ @pagopa/payments-cloud-admin
