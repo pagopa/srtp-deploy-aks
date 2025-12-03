@@ -74,10 +74,6 @@ variables:
         value: '[Trigger-${{ parameters.TRIGGER_MESSAGE }}] [ENV-${{ parameters.ENV }}] [ArgoCD-${{ parameters.ARGOCD_TARGET_BRANCH }}] [Postman-${{ parameters.POSTMAN_BRANCH }}]'
       ${{ if eq(parameters.TRIGGER_MESSAGE, 'none') }}:
         value: '[ENV-${{ parameters.ENV }}] [ArgoCD-${{ parameters.ARGOCD_TARGET_BRANCH }}] [Postman-${{ parameters.POSTMAN_BRANCH }}]'
-  - name: GITHUB_USER
-    value: $(GITHUB_USER)
-  - name: GITHUB_TOKEN
-    value: $(GITHUB_TOKEN)
 
 
   - ${{ if eq(parameters.ENV, 'dev') }}:
