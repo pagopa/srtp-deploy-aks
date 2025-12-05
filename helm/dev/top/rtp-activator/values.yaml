@@ -3,7 +3,7 @@ microservice-chart:
 
   image:
     repository: ghcr.io/pagopa/rtp-activator
-    tag: snapshot-main
+    tag: snapshot-main@sha256:43858d3673bafa5f2a00b72770d7048c121bd97c8070446cb37d0ad4a4b61576
     pullPolicy: Always
 
 
