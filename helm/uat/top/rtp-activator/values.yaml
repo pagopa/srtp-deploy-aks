@@ -35,6 +35,7 @@ microservice-chart:
     EPC_MOCK_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/mock"
     AZURE_STORAGE_ACCOUNT_NAME: "cstaruitnsrtpsa"
     CALLBACK_BASE_URL: "https://api-rtp-cb.uat.cstar.pagopa.it/rtp/cb"
+    TAKEOVER_OTP_EXPIRATION: "PT2M"
 
   keyvault:
     name: "cstar-u-itn-srtp-kv"
