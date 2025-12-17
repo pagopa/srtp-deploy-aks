@@ -1,0 +1,43 @@
+microservice-chart:
+  namespace: "srtp"
+
+  image:
+    repository: ghcr.io/pagopa/rtp-consumer
+    tag: snapshot-main
+    pullPolicy: Always
+
+  ingress:
+    host: "srtp.itn.internal.uat.cstar.pagopa.it"
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "250m"
+      memory: "512Mi"
+
+  autoscaling:
+    enable: false
+#    minReplica: 1
+#    maxReplica: 3
+#    pollingInterval: 30
+#    cooldownPeriod: 300
+#    triggers:
+#      - type: cpu
+#        metadata:
+#          type: Utilization
+#          value: "60"
+
+  envConfig:
+
+  keyvault:
+    name: "cstar-u-itn-srtp-kv"
+    tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
+
+postman-test:
+  run: true
+  repoName: rtp-activator
+  dir: postman
+  collectionName: "rtp-activator-E2E.postman_collection.json"
+  envVariablesFile: "rtp_uat.postman_environment.json" #inside azdo secure files
