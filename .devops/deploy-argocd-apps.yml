@@ -32,6 +32,7 @@ parameters:
   default:
     - rtp-activator
     - rtp-sender
+    - rtp-consumer
 
 - name: APPS_MID
   displayName: Mid ArgoCD Apps. Set to [] to skip deployment.
