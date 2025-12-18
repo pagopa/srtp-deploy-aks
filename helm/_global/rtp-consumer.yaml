@@ -82,6 +82,10 @@ microservice-chart:
     LOG_LEVEL_MONGODB_DRIVER: "WARN"
 
   envSecret:
+    APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
+    GDP_EVENTHUB_CONNECTION_STRING: "gdp-eventhub-connection-string"
+    MIL_AUTH_CLIENT_SECRET: "mil-auth-client-secret"
+    MIL_AUTH_CLIENT_ID: "mil-auth-client-id"
 
 
   tolerations:
