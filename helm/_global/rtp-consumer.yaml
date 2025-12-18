@@ -1,0 +1,101 @@
+microservice-chart:
+  namespace: "srtp"
+
+  deployment:
+    create: true
+    topologySpreadConstraints:
+      create: true
+      useDefaultConfiguration: true
+
+  livenessProbe:
+    httpGet:
+      path: /actuator/health/liveness
+      port: 8080
+    initialDelaySeconds: 60
+    failureThreshold: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+
+  readinessProbe:
+    httpGet:
+      path: /actuator/health/readiness
+      port: 8080
+    initialDelaySeconds: 10
+    failureThreshold: 6
+    periodSeconds: 10
+    timeoutSeconds: 5
+
+
+  service:
+    create: true
+    type: ClusterIP
+    ports:
+      - 8080
+
+  ingress:
+    create: true
+    path: /rtpconsumer(/|$)(.*)
+    rewriteTarget: /$2
+    servicePort: 8080
+    # proxyBodySize: 2m
+    annotations: {
+      nginx.ingress.kubernetes.io/satisfy: "any"
+    }
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 65534
+    runAsGroup: 65534
+
+  tmpVolumeMount:
+    create: true
+    mounts:
+      - name: tmp
+        mountPath: /tmp
+      - name: logs
+        mountPath: /app/logs
+
+  envConfig:
+    TZ: "Europe/Rome"
+    OTEL_SERVICE_NAME: "rtp-consumer"
+    OTEL_TRACES_SAMPLER: "always_on"
+    LOG_LEVEL_ROOT: "INFO"
+    LOG_LEVEL_PAGOPA: "INFO"
+    LOG_LEVEL_SPRING_INTEGRATION: "INFO"
+    LOG_LEVEL_SPRING_SECURITY: "INFO"
+    LOG_LEVEL_SPRING_WS: "INFO"
+    LOG_LEVEL_SPRING_CLOUD: "WARN"
+    LOG_LEVEL_SPRING_DATA: "INFO"
+    LOG_LEVEL_SPRING_BOOT: "INFO"
+    LOG_LEVEL_SPRING_BOOT_AVAILABILITY: "DEBUG"
+    LOG_LEVEL_SPRING_KAFKA: "INFO"
+    LOG_LEVEL_IO_SWAGGER: "WARN"
+    LOG_LEVEL_JAVAX_PERSISTENCE: "INFO"
+    LOG_LEVEL_ORG_HIBERNATE: "INFO"
+    LOG_LEVEL_MONGODB_DRIVER: "WARN"
+
+  envSecret:
+
+
+  tolerations:
+    - key: "srtpOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: "domain"
+                operator: "In"
+                values:
+                  - "srtp"
