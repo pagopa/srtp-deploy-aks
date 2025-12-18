@@ -81,7 +81,7 @@ microservice-chart:
     LOG_LEVEL_ORG_HIBERNATE: "INFO"
     LOG_LEVEL_MONGODB_DRIVER: "WARN"
 
-  envSecret:
+#  envSecret:
 
 
   tolerations:
