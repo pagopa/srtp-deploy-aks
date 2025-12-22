@@ -30,6 +30,9 @@ microservice-chart:
           value: "60"
 
   envConfig:
+    GDP_EVENTHUB_NAME: "pagopa-p-itn-gps-rtp-integration-evh"
+    GDP_EVENTHUB_TOPIC: "rtp-events"
+    GDP_EVENTHUB_CONSUMER_GROUP: "rtp-events-processor"
 
   keyvault:
     name: "cstar-p-itn-srtp-kv"
