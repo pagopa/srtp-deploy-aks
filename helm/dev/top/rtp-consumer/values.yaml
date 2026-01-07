@@ -36,7 +36,6 @@ microservice-chart:
     PROCESS_GPD_MESSAGE_BASE_URL: "https://api-rtp.dev.cstar.pagopa.it/rtp/rtps/"
     PROCESS_GPD_MESSAGE_TIMEOUT: "PT30S"
 
-
   keyvault:
     name: "cstar-d-itn-srtp-kv"
     tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
