@@ -33,6 +33,9 @@ microservice-chart:
     PROCESS_GPD_MESSAGE_BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/rtps/"
     PROCESS_GPD_MESSAGE_TIMEOUT: "PT30S"
     MIL_AUTH_TOKEN_URL: "https://api-mcshared.uat.cstar.pagopa.it/auth/token"
+    GPD_EVENTHUB_NAME: "pagopa-u-itn-gps-rtp-integration-evh"
+    GPD_EVENTHUB_TOPIC: "rtp-events"
+    GPD_EVENTHUB_CONSUMER_GROUP: "rtp-events-processor"
 
   keyvault:
     name: "cstar-u-itn-srtp-kv"
