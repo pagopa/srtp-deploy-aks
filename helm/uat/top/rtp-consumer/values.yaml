@@ -30,6 +30,9 @@ microservice-chart:
 #          value: "60"
 
   envConfig:
+    PROCESS_GPD_MESSAGE_BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/rtps/"
+    PROCESS_GPD_MESSAGE_TIMEOUT: "PT30S"
+    MIL_AUTH_TOKEN_URL: "https://api-mcshared.uat.cstar.pagopa.it/auth/token"
 
   keyvault:
     name: "cstar-u-itn-srtp-kv"
