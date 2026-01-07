@@ -84,9 +84,8 @@ microservice-chart:
   envSecret:
     APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
     GPD_EVENTHUB_CONNECTION_STRING: "gpd-eventhub-connection-string"
-    MIL_AUTH_CLIENT_SECRET: "mil-auth-client-secret"
-    MIL_AUTH_CLIENT_ID: "mil-auth-client-id"
-
+    PROCESS_MESSAGE_CLIENT_SECRET: "mil-auth-client-secret-consumer"
+    PROCESS_MESSAGE_CLIENT_ID: "mil-auth-client-id-consumer"
 
   tolerations:
     - key: "srtpOnly"
