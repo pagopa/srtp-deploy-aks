@@ -93,6 +93,9 @@ microservice-chart:
     APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
     CLIENT_CERTIFICATE: "client-certificate"
     CLIENT_SECRET_CBI: "client-secret-cbi"
+    CLIENT_SECRET_POSTE: "client-secret-poste"
+    JKS_TRUST_STORE_PATH: "jks-trust-store-path"
+    JKS_TRUST_STORE_PASSWORD: "jks-trust-store-password"
 
 
   tolerations:
