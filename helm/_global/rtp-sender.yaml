@@ -119,8 +119,8 @@ microservice-chart:
     JKS_TRUST_STORE_PATH: "jks-trust-store-path"
     JKS_TRUST_STORE_PASSWORD: "jks-trust-store-password"
     GPD_EVENTHUB_CONNECTION_STRING: "gpd-eventhub-connection-string"
-    MIL_AUTH_CLIENT_SECRET: "mil-auth-client-secret"
-    MIL_AUTH_CLIENT_ID: "mil-auth-client-id"
+    READ_RTP_ACTIVATIONS_CLIENT_SECRET: "read-rtp-activations-client-secret"
+    READ_RTP_ACTIVATIONS_CLIENT_ID: "read-rtp-activations-client-id"
     READ_RTP_PAYEES_CLIENT_ID: "read-rtp-payees-client-id"
     READ_RTP_PAYEES_CLIENT_SECRET: "read-rtp-payees-client-secret"
 
