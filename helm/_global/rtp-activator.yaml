@@ -1,6 +1,26 @@
 microservice-chart:
   namespace: "srtp"
 
+  image:
+    volumeMounts:
+      - mountPath: /mnt/jks/
+        name: jks
+
+  initContainers:
+    - name: copy-jks
+      image:
+        repository: busybox
+        tag: 1.36.1@sha256:355b3a1bf5609da364166913878a8508d4ba30572d02020a97028c75477e24ff
+        pullPolicy: Always
+      command: ['sh', '-c', "mkdir -p /mnt/jks/ && cp /mnt/share/* /mnt/jks/"]
+      tmpVolumeMount:
+        create: true
+        mounts:
+          - name: share-volume
+            mountPath: /mnt/share
+          - name: jks
+            mountPath: "/mnt/jks/"
+
   deployment:
     create: true
     topologySpreadConstraints:
@@ -61,16 +81,14 @@ microservice-chart:
         mountPath: /tmp
       - name: logs
         mountPath: /app/logs
+      - name: jks
+        mountPath: /mnt/jks/
 
   envConfig:
     TZ: "Europe/Rome"
     OTEL_SERVICE_NAME: "rtp-activator"
     DB_NAME: "activation"
     OTEL_TRACES_SAMPLER: "always_on"
-    EPC_SEND_RETRY_MAX_ATTEMPTS: "1"
-    EPC_SEND_RETRY_BACKOFF_MIN_DURATION_MS: "1000"
-    EPC_SEND_RETRY_BACKOFF_JITTER: "0.75"
-    EPC_SEND_TIMEOUT_MS: "6000"
     AZURE_STORAGE_CONTAINER_NAME: "rtp-debtor-service-provider"
     AZURE_BLOB_NAME: "serviceregistry.json"
     LOG_LEVEL_ROOT: "INFO"
