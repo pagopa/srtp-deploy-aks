@@ -41,6 +41,13 @@ microservice-chart:
     name: "cstar-u-itn-srtp-kv"
     tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
 
+  azureFile:
+    create: true
+    mounts:
+      - shareName: cstar-d-itn-srtp-jks-file-share
+        name: share-volume
+        readOnly: true
+
 postman-test:
   run: true
   repoName: rtp-activator
