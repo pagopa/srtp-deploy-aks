@@ -12,7 +12,7 @@ microservice-chart:
         repository: busybox
         tag: 1.36.1@sha256:355b3a1bf5609da364166913878a8508d4ba30572d02020a97028c75477e24ff
         pullPolicy: Always
-      command: [ 'sh', '-c', "mkdir -p /mnt/jks/ && cp /mnt/share/* /mnt/jks/" ]
+      command: ['sh', '-c', "mkdir -p /mnt/jks/ && cp /mnt/share/* /mnt/jks/"]
       tmpVolumeMount:
         create: true
         mounts:
