@@ -44,6 +44,6 @@ microservice-chart:
   azureFile:
     create: true
     mounts:
-      - shareName: cstar-d-itn-srtp-jks-file-share
+      - shareName: cstar-p-itn-srtp-jks-file-share
         name: share-volume
         readOnly: true
