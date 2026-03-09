@@ -32,7 +32,7 @@ microservice-chart:
 
   envConfig:
     BASE_URL: "https://api-rtp.dev.cstar.pagopa.it/rtp/consumer/"
-    MIL_AUTH_TOKEN_URL: "https://api-mcshared.dev.cstar.pagopa.it/auth/token"
+    MIL_AUTH_TOKEN_URL: "https://api-mcshared.dev.cstar.pagopa.it/auth-itn/realms/srtp/protocol/openid-connect/token"
     PROCESS_GPD_MESSAGE_BASE_URL: "https://api-rtp.dev.cstar.pagopa.it/rtp"
     PROCESS_GPD_MESSAGE_TIMEOUT: "PT30S"
     GPD_EVENTHUB_NAME: "pagopa-d-itn-gps-rtp-integration-evh"
