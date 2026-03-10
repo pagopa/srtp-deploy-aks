@@ -123,6 +123,7 @@ microservice-chart:
     READ_RTP_ACTIVATIONS_CLIENT_ID: "read-rtp-activations-client-id"
     READ_RTP_PAYEES_CLIENT_ID: "read-rtp-payees-client-id"
     READ_RTP_PAYEES_CLIENT_SECRET: "read-rtp-payees-client-secret"
+    REDIS_CONNECTION_URL: "srtp-redis-primary-connection-url"
 
 
   tolerations:
