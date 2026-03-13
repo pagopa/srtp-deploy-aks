@@ -43,6 +43,7 @@ microservice-chart:
     PAYEES_REGISTRY_DATA_CACHE_TTL: "PT3H"
     MIL_AUTH_TOKEN_URL: "https://api-mcshared.cstar.pagopa.it/auth-itn/realms/srtp/protocol/openid-connect/token"
     FEATURE_TOGGLE_ENABLE_LAST_PROCESSED_TIMESTAMP: "false"
+    IDEMPOTENCY_TTL: "P1M"
 
   keyvault:
     name: "cstar-p-itn-srtp-kv"
