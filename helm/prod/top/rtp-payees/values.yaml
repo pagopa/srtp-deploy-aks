@@ -1,0 +1,37 @@
+microservice-chart:
+  namespace: "srtp"
+
+  image:
+    repository: ghcr.io/pagopa/rtp-payees
+    tag: v1.11.0
+    pullPolicy: Always
+
+  ingress:
+    host: "srtp.itn.internal.cstar.pagopa.it"
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+  autoscaling:
+    enable: false
+  #    minReplica: 1
+  #    maxReplica: 3
+  #    pollingInterval: 30 # seconds
+  #    cooldownPeriod: 300 # seconds
+  #    triggers:
+  #      - type: cpu
+  #        metadata:
+  #          type: Utilization
+  #          value: "60"
+
+  envConfig:
+    BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/payees/"
+
+  keyvault:
+    name: "cstar-p-itn-srtp-kv"
+    tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
