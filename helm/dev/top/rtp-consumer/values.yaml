@@ -38,6 +38,7 @@ microservice-chart:
     GPD_EVENTHUB_NAME: "pagopa-d-itn-gps-rtp-integration-evh"
     GPD_EVENTHUB_TOPIC: "rtp-events"
     GPD_EVENTHUB_CONSUMER_GROUP: "rtp-events-processor"
+    GPD_MESSAGE_PROCESSING_ENABLED: "true"
 
   keyvault:
     name: "cstar-d-itn-srtp-kv"
