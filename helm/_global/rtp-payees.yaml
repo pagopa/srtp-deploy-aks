@@ -82,6 +82,7 @@ microservice-chart:
 
   envSecret:
     APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
+    BACKOFFICE_API_KEY: "backoffice-api-key"
 
   tolerations:
     - key: "srtpOnly"
