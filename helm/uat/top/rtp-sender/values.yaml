@@ -44,6 +44,8 @@ microservice-chart:
     MIL_AUTH_TOKEN_URL: "https://api-mcshared.uat.cstar.pagopa.it/auth-itn/realms/srtp/protocol/openid-connect/token"
     FEATURE_TOGGLE_ENABLE_LAST_PROCESSED_TIMESTAMP: "false"
     IDEMPOTENCY_TTL: "P7D"
+    ADX_CLUSTER_URL: "https://cstar-u-itn-platform.italynorth.kusto.windows.net"
+    ADX_DATABASE_NAME: "srtp"
 
   keyvault:
     name: "cstar-u-itn-srtp-kv"
