@@ -31,6 +31,7 @@ microservice-chart:
 
   envConfig:
     BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/payees/"
+    BACKOFFICE_BASE_URL: "https://api.platform.pagopa.it/backoffice/pagopa/services/v1"
 
   keyvault:
     name: "cstar-p-itn-srtp-kv"
