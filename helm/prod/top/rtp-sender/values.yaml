@@ -47,6 +47,10 @@ microservice-chart:
     ADX_CLUSTER_URL: "https://cstar-p-itn-platform.italynorth.kusto.windows.net"
     ADX_INGEST_CLUSTER_URL: "https://ingest-cstar-p-itn-platform.italynorth.kusto.windows.net"
     ADX_DATABASE_NAME: "srtp"
+    RTP_TABLE_NAME: "Rtps"
+    RTP_EVENT_TABLE_NAME: "RtpEvents"
+    RTP_MAPPING_NAME: "RtpsMapping"
+    RTP_EVENTS_MAPPING_NAME: "RtpEventsMapping"
 
   keyvault:
     name: "cstar-p-itn-srtp-kv"
