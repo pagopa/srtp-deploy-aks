@@ -88,6 +88,7 @@ microservice-chart:
     TZ: "Europe/Rome"
     OTEL_SERVICE_NAME: "rtp-sender"
     DB_NAME: "rtp"
+    ADX_DATABASE_NAME: "srtp"
     OTEL_TRACES_SAMPLER: "always_on"
     EPC_SEND_RETRY_MAX_ATTEMPTS: "1"
     EPC_SEND_RETRY_BACKOFF_MIN_DURATION_MS: "1000"

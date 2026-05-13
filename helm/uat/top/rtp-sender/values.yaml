@@ -46,7 +46,6 @@ microservice-chart:
     IDEMPOTENCY_TTL: "P7D"
     ADX_CLUSTER_URL: "https://cstar-u-itn-platform.italynorth.kusto.windows.net"
     ADX_INGEST_CLUSTER_URL: "https://ingest-cstar-u-itn-platform.italynorth.kusto.windows.net"
-    ADX_DATABASE_NAME: "srtp"
 
   keyvault:
     name: "cstar-u-itn-srtp-kv"
