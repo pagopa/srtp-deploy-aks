@@ -46,11 +46,6 @@ microservice-chart:
     IDEMPOTENCY_TTL: "PT5M"
     ADX_CLUSTER_URL: "https://cstar-d-itn-platform.italynorth.kusto.windows.net"
     ADX_INGEST_CLUSTER_URL: "https://ingest-cstar-d-itn-platform.italynorth.kusto.windows.net"
-    ADX_DATABASE_NAME: "srtp"
-    RTP_TABLE_NAME: "Rtps"
-    RTP_EVENT_TABLE_NAME: "RtpEvents"
-    RTP_MAPPING_NAME: "RtpsMapping"
-    RTP_EVENTS_MAPPING_NAME: "RtpEventsMapping"
 
   keyvault:
     name: "cstar-d-itn-srtp-kv"
