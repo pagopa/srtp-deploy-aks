@@ -82,6 +82,7 @@ microservice-chart:
     LOG_LEVEL_MONGODB_DRIVER: "WARN"
 
   envSecret:
+    COSMOS_ACCOUNT_RTP_CONNECTION_STRING: "cosmosdb-account-rtp-primary-connection-string"
     APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
     GPD_EVENTHUB_CONNECTION_STRING: "gpd-eventhub-connection-string"
     PROCESS_MESSAGE_CLIENT_SECRET: "mil-auth-client-secret-consumer"
