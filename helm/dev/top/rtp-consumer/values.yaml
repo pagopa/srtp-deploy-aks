@@ -38,7 +38,7 @@ microservice-chart:
     GPD_EVENTHUB_NAME: "pagopa-d-itn-gps-rtp-integration-evh"
     GPD_EVENTHUB_TOPIC: "rtp-events"
     GPD_EVENTHUB_CONSUMER_GROUP: "rtp-events-processor"
-    COSMOSDB_RETRY_MAX_ATTEMPTS: "3"
+    COSMOSDB_RETRY_MAX_ATTEMPTS: "1"
     COSMOSDB_RETRY_BACKOFF_MIN_DURATION: "PT1S"
     COSMOSDB_RETRY_BACKOFF_JITTER: "0.75"
     GPD_MESSAGE_PROCESSING_ENABLED: "true"
