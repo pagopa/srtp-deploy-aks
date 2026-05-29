@@ -3,7 +3,7 @@ microservice-chart:
 
   image:
     repository: ghcr.io/pagopa/rtp-sender
-    tag: v2.4.2
+    tag: snapshot-SRTP-1891-hotfix-timeout-redis
     pullPolicy: Always
 
   ingress:
