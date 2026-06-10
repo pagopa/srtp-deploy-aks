@@ -1,0 +1,144 @@
+microservice-chart:
+  namespace: "srtp"
+
+  image:
+    volumeMounts:
+      - mountPath: /mnt/jks/
+        name: jks
+
+  initContainers:
+    - name: copy-jks
+      image:
+        repository: busybox
+        tag: 1.36.1@sha256:355b3a1bf5609da364166913878a8508d4ba30572d02020a97028c75477e24ff
+        pullPolicy: Always
+      command: ['sh', '-c', "mkdir -p /mnt/jks/ && cp /mnt/share/* /mnt/jks/"]
+      tmpVolumeMount:
+        create: true
+        mounts:
+          - name: share-volume
+            mountPath: /mnt/share
+          - name: jks
+            mountPath: "/mnt/jks/"
+
+  deployment:
+    create: true
+    topologySpreadConstraints:
+      create: true
+      useDefaultConfiguration: true
+
+  livenessProbe:
+    httpGet:
+      path: /actuator/health/liveness
+      port: 8080
+    initialDelaySeconds: 60
+    failureThreshold: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+
+  readinessProbe:
+    httpGet:
+      path: /actuator/health/readiness
+      port: 8080
+    initialDelaySeconds: 10
+    failureThreshold: 6
+    periodSeconds: 10
+    timeoutSeconds: 5
+
+
+  service:
+    create: true
+    type: ClusterIP
+    ports:
+      - 8080
+
+  ingress:
+    create: true
+    path: /rtpsenderv2(/|$)(.*)
+    rewriteTarget: /$2
+    servicePort: 8080
+    # proxyBodySize: 2m
+    annotations: {
+      nginx.ingress.kubernetes.io/satisfy: "any"
+    }
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 65534
+    runAsGroup: 65534
+
+  tmpVolumeMount:
+    create: true
+    mounts:
+      - name: tmp
+        mountPath: /tmp
+      - name: logs
+        mountPath: /app/logs
+      - name: jks
+        mountPath: /mnt/jks/
+
+  envConfig:
+    TZ: "Europe/Rome"
+    OTEL_SERVICE_NAME: "rtp-sender-v2"
+    DB_NAME: "rtp"
+    ADX_DATABASE_NAME: "srtp"
+    OTEL_TRACES_SAMPLER: "always_on"
+    EPC_SEND_RETRY_MAX_ATTEMPTS: "1"
+    EPC_SEND_RETRY_BACKOFF_MIN_DURATION_MS: "1000"
+    EPC_SEND_RETRY_BACKOFF_JITTER: "0.75"
+    EPC_SEND_TIMEOUT_MS: "30000"
+    AZURE_STORAGE_CONTAINER_NAME: "rtp-debtor-service-provider"
+    AZURE_BLOB_NAME: "serviceregistry.json"
+    LOG_LEVEL_ROOT: "INFO"
+    LOG_LEVEL_PAGOPA: "INFO"
+    LOG_LEVEL_SPRING_INTEGRATION: "WARN"
+    LOG_LEVEL_SPRING_SECURITY: "INFO"
+    LOG_LEVEL_SPRING_WS: "WARN"
+    LOG_LEVEL_SPRING_CLOUD: "WARN"
+    LOG_LEVEL_SPRING_DATA: "WARN"
+    LOG_LEVEL_SPRING_BOOT: "WARN"
+    LOG_LEVEL_SPRING_BOOT_AVAILABILITY: "WARN"
+    LOG_LEVEL_SPRING_KAFKA: "WARN"
+    LOG_LEVEL_IO_SWAGGER: "WARN"
+    LOG_LEVEL_JAVAX_PERSISTENCE: "WARN"
+    LOG_LEVEL_ORG_HIBERNATE: "WARN"
+    LOG_LEVEL_MONGODB_DRIVER: "WARN"
+
+  envSecret:
+    COSMOS_ACCOUNT_RTP_CONNECTION_STRING: "cosmosdb-account-rtp-primary-connection-string"
+    APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
+    CLIENT_CERTIFICATE: "client-certificate"
+    CLIENT_SECRET_CBI: "client-secret-cbi"
+    CLIENT_SECRET_POSTE: "client-secret-poste"
+    JKS_TRUST_STORE_PATH: "jks-trust-store-path"
+    JKS_TRUST_STORE_PASSWORD: "jks-trust-store-password"
+    GPD_EVENTHUB_CONNECTION_STRING: "gpd-eventhub-connection-string"
+    READ_RTP_ACTIVATIONS_CLIENT_SECRET: "read-rtp-activations-client-secret"
+    READ_RTP_ACTIVATIONS_CLIENT_ID: "read-rtp-activations-client-id"
+    READ_RTP_PAYEES_CLIENT_ID: "read-rtp-payees-client-id"
+    READ_RTP_PAYEES_CLIENT_SECRET: "read-rtp-payees-client-secret"
+    REDIS_CONNECTION_URL: "srtp-redis-primary-connection-url"
+
+
+  tolerations:
+    - key: "srtpOnly"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: "domain"
+                operator: "In"
+                values:
+                  - "srtp"
