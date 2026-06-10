@@ -54,7 +54,7 @@ microservice-chart:
 
   ingress:
     create: true
-    path: /rtpsender(/|$)(.*)
+    path: /rtpsenderv2(/|$)(.*)
     rewriteTarget: /$2
     servicePort: 8080
     # proxyBodySize: 2m
