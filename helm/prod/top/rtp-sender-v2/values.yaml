@@ -1,0 +1,59 @@
+microservice-chart:
+  namespace: "srtp"
+
+  image:
+    repository: ghcr.io/pagopa/rtp-sender-v2
+    tag: v2.5.1
+    pullPolicy: Always
+
+  ingress:
+    host: "srtp.itn.internal.cstar.pagopa.it"
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+  autoscaling:
+    enable: true
+    minReplica: 2
+    maxReplica: 4
+    pollingInterval: 30
+    cooldownPeriod: 300
+    triggers:
+      - type: cpu
+        metadata:
+          type: Utilization
+          value: "60"
+
+  envConfig:
+    BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/activation/"
+    SP_BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/rtps/"
+    PAYEES_REGISTRY_BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/payees/"
+    EPC_MOCK_URL: "https://api-rtp.cstar.pagopa.it/rtp/mock"
+    AZURE_STORAGE_ACCOUNT_NAME: "cstarpitnsrtpsa"
+    CALLBACK_BASE_URL: "https://api-rtp-cb.cstar.pagopa.it/rtp/cb"
+    GPD_EVENTHUB_NAME: "pagopa-p-itn-gps-rtp-integration-evh"
+    GPD_EVENTHUB_TOPIC: "rtp-events"
+    GPD_EVENTHUB_CONSUMER_GROUP: "rtp-events-processor"
+    REGISTRY_DATA_CACHE_TTL: "P1D"
+    PAYEES_REGISTRY_DATA_CACHE_TTL: "PT3H"
+    MIL_AUTH_TOKEN_URL: "https://api-mcshared.cstar.pagopa.it/auth-itn/realms/srtp/protocol/openid-connect/token"
+    FEATURE_TOGGLE_ENABLE_LAST_PROCESSED_TIMESTAMP: "false"
+    IDEMPOTENCY_TTL: "P30D"
+    ADX_CLUSTER_URL: "https://cstar-p-itn-platform.italynorth.kusto.windows.net"
+    ADX_INGEST_CLUSTER_URL: "https://ingest-cstar-p-itn-platform.italynorth.kusto.windows.net"
+
+  keyvault:
+    name: "cstar-p-itn-srtp-kv"
+    tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
+
+  azureFile:
+    create: true
+    mounts:
+      - shareName: cstar-p-itn-srtp-jks-file-share
+        name: share-volume
+        readOnly: true

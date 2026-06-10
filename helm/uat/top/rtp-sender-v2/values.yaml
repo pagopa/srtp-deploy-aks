@@ -1,0 +1,66 @@
+microservice-chart:
+  namespace: "srtp"
+
+  image:
+    repository: ghcr.io/pagopa/rtp-sender-v2
+    tag: snapshot-main
+    pullPolicy: Always
+
+  ingress:
+    host: "srtp.itn.internal.uat.cstar.pagopa.it"
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "250m"
+      memory: "512Mi"
+
+  autoscaling:
+    enable: false
+#    minReplica: 1
+#    maxReplica: 3
+#    pollingInterval: 30
+#    cooldownPeriod: 300
+#    triggers:
+#      - type: cpu
+#        metadata:
+#          type: Utilization
+#          value: "60"
+
+  envConfig:
+    BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/activation/"
+    SP_BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/rtps/"
+    PAYEES_REGISTRY_BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/payees/"
+    EPC_MOCK_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/mock"
+    AZURE_STORAGE_ACCOUNT_NAME: "cstaruitnsrtpsa"
+    CALLBACK_BASE_URL: "https://api-rtp-cb.uat.cstar.pagopa.it/rtp/cb"
+    GPD_EVENTHUB_NAME: "pagopa-u-itn-gps-rtp-integration-evh"
+    GPD_EVENTHUB_TOPIC: "rtp-events"
+    GPD_EVENTHUB_CONSUMER_GROUP: "rtp-events-processor"
+    REGISTRY_DATA_CACHE_TTL: "PT5M"
+    PAYEES_REGISTRY_DATA_CACHE_TTL: "PT5M"
+    MIL_AUTH_TOKEN_URL: "https://api-mcshared.uat.cstar.pagopa.it/auth-itn/realms/srtp/protocol/openid-connect/token"
+    FEATURE_TOGGLE_ENABLE_LAST_PROCESSED_TIMESTAMP: "false"
+    IDEMPOTENCY_TTL: "P7D"
+    ADX_CLUSTER_URL: "https://cstar-u-itn-platform.italynorth.kusto.windows.net"
+    ADX_INGEST_CLUSTER_URL: "https://ingest-cstar-u-itn-platform.italynorth.kusto.windows.net"
+
+  keyvault:
+    name: "cstar-u-itn-srtp-kv"
+    tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
+
+  azureFile:
+    create: true
+    mounts:
+      - shareName: cstar-u-itn-srtp-jks-file-share
+        name: share-volume
+        readOnly: true
+
+postman-test:
+  run: true
+  repoName: rtp-sender
+  dir: postman
+  collectionName: "rtp-sender-E2E.postman_collection.json"
+  envVariablesFile: "rtp_uat.postman_environment.json" #inside azdo secure files
