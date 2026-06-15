@@ -47,6 +47,60 @@ microservice-chart:
     ADX_CLUSTER_URL: "https://cstar-u-itn-platform.italynorth.kusto.windows.net"
     ADX_INGEST_CLUSTER_URL: "https://ingest-cstar-u-itn-platform.italynorth.kusto.windows.net"
 
+  sidecars:
+    - name: epc-proxy-sidecar
+      image: ghcr.io/pagopa/rtp-sender-v2-sidecar:snapshot-main
+      imagePullPolicy: Always
+      ports:
+        - containerPort: 3000
+          name: proxy-http
+      env:
+        - name: PORT
+          value: "3000"
+        - name: EPC_BASE_URL
+          value: "https://api-rtp.dev.cstar.pagopa.it/rtp/mock"
+        - name: EPC_TIMEOUT_MS
+          value: "10000"
+        - name: RETRY_MAX_ATTEMPTS
+          value: "3"
+        - name: RETRY_BASE_DELAY_MS
+          value: "1000"
+        - name: CLIENT_CERTIFICATE
+          valueFrom:
+            secretKeyRef:
+              name: rtp-sender-microservice-chart
+              key: client-certificate
+
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "128Mi"
+        limits:
+          cpu: "300m"
+          memory: "256Mi"
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 3000
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        timeoutSeconds: 3
+        failureThreshold: 3
+      readinessProbe:
+        httpGet:
+          path: /health
+          port: 3000
+        initialDelaySeconds: 3
+        periodSeconds: 5
+        timeoutSeconds: 3
+        failureThreshold: 3
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        capabilities:
+          drop:
+            - all
+
   keyvault:
     name: "cstar-u-itn-srtp-kv"
     tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
