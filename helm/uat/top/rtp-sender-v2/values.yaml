@@ -68,7 +68,7 @@ microservice-chart:
         - name: CLIENT_CERTIFICATE
           valueFrom:
             secretKeyRef:
-              name: rtp-sender-microservice-chart
+              name: rtp-sender-v2-microservice-chart
               key: client-certificate
 
       resources:
