@@ -58,7 +58,7 @@ microservice-chart:
         - name: PORT
           value: "3000"
         - name: EPC_BASE_URL
-          value: "https://api-rtp.dev.cstar.pagopa.it/rtp/mock"
+          value: "https://api-rtp.uat.cstar.pagopa.it/rtp/mock"
         - name: EPC_TIMEOUT_MS
           value: "10000"
         - name: RETRY_MAX_ATTEMPTS
