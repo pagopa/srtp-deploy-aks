@@ -76,8 +76,8 @@ microservice-chart:
           cpu: "100m"
           memory: "128Mi"
         limits:
-          cpu: "300m"
-          memory: "256Mi"
+          cpu: "250m"
+          memory: "512Mi"
       livenessProbe:
         httpGet:
           path: /health
