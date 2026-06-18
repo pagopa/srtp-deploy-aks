@@ -121,5 +121,5 @@ postman-test:
   run: true
   repoName: rtp-sender
   dir: postman
-  collectionName: "rtp-sender-E2E.postman_collection.json"
+  collectionName: "rtp-sender-v2-E2E.postman_collection.json"
   envVariablesFile: "rtp_uat.postman_environment.json" #inside azdo secure files
