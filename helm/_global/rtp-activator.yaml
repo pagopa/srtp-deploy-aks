@@ -131,3 +131,9 @@ microservice-chart:
                 operator: "In"
                 values:
                   - "srtp"
+
+  dnsConfig:
+    options:
+      - name: ndots
+        value: "1"
+        
