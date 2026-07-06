@@ -3,7 +3,7 @@ microservice-chart:
 
   image:
     repository: ghcr.io/pagopa/rtp-payees
-    tag: v1.6.1
+    tag: v1.6.2
     pullPolicy: Always
 
   ingress:
