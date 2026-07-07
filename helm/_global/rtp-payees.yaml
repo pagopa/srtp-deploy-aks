@@ -6,6 +6,7 @@ microservice-chart:
     topologySpreadConstraints:
       create: true
       useDefaultConfiguration: true
+    ndots: 1
 
   livenessProbe:
     httpGet:
@@ -42,7 +43,6 @@ microservice-chart:
       nginx.ingress.kubernetes.io/satisfy: "any"
     }
 
-  ndots: 1
 
   podAnnotations: {}
 

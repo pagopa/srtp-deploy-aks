@@ -26,6 +26,11 @@ microservice-chart:
     topologySpreadConstraints:
       create: true
       useDefaultConfiguration: true
+    ndots: 1
+    hostAliases:
+      - ip: "20.103.162.3"
+        hostnames:
+          - "api-mcshared.cstar.pagopa.it"
 
   livenessProbe:
     httpGet:
@@ -62,7 +67,6 @@ microservice-chart:
       nginx.ingress.kubernetes.io/satisfy: "any"
     }
 
-  ndots: 1
 
   podAnnotations: {}
 
