@@ -1,6 +1,12 @@
 microservice-chart:
   namespace: "srtp"
 
+  deployment:
+    hostAliases:
+      - ip: "20.103.162.3"
+        hostnames:
+          - "api-mcshared.cstar.pagopa.it"
+
   image:
     repository: ghcr.io/pagopa/rtp-consumer
     tag: v1.17.3

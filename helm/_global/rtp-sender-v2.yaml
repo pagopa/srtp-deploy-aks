@@ -27,10 +27,6 @@ microservice-chart:
       create: true
       useDefaultConfiguration: true
     ndots: 1
-    hostAliases:
-      - ip: "20.103.162.3"
-        hostnames:
-          - "api-mcshared.cstar.pagopa.it"
 
   livenessProbe:
     httpGet:
