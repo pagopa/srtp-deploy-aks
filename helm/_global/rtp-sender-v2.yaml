@@ -26,6 +26,7 @@ microservice-chart:
     topologySpreadConstraints:
       create: true
       useDefaultConfiguration: true
+    ndots: 1
 
   livenessProbe:
     httpGet:
@@ -61,6 +62,7 @@ microservice-chart:
     annotations: {
       nginx.ingress.kubernetes.io/satisfy: "any"
     }
+
 
   podAnnotations: {}
 
@@ -143,8 +145,3 @@ microservice-chart:
                 operator: "In"
                 values:
                   - "srtp"
-
-  dnsConfig:
-    options:
-      - name: ndots
-        value: "1"
