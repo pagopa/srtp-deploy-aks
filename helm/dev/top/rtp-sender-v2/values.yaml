@@ -35,7 +35,7 @@ microservice-chart:
     PAYEES_REGISTRY_BASE_URL: "https://api-rtp.dev.cstar.pagopa.it/rtp/payees/"
     EPC_MOCK_URL: "https://api-rtp.dev.cstar.pagopa.it/rtp/mock"
     AZURE_STORAGE_ACCOUNT_NAME: "cstarditnsrtpsa"
-    CALLBACK_BASE_URL: "https://api-rtp-cb.dev.cstar.pagopa.it/rtp/cb"
+    CALLBACK_BASE_URL: "https://api-rtp-cb.dev.cstar.pagopa.it/rtp/cb/v2"
     GPD_EVENTHUB_NAME: "pagopa-d-itn-gps-rtp-integration-evh"
     GPD_EVENTHUB_TOPIC: "rtp-events"
     GPD_EVENTHUB_CONSUMER_GROUP: "rtp-events-processor"
