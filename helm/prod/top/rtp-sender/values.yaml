@@ -7,6 +7,9 @@ microservice-chart:
       - ip: "20.103.162.3"
         hostnames:
           - "api-mcshared.cstar.pagopa.it"
+      - ip: "10.20.0.4"
+        hostnames:
+          - "cstar-p-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
 
   image:
     repository: ghcr.io/pagopa/rtp-sender
