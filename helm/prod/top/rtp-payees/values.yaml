@@ -1,6 +1,13 @@
 microservice-chart:
   namespace: "srtp"
 
+  deployment:
+    # Keep the IP in sync with the upstream endpoint if it changes.
+    hostAliases:
+      - ip: "20.103.162.3"
+        hostnames:
+          - "api-rtp.cstar.pagopa.it"
+
   image:
     repository: ghcr.io/pagopa/rtp-payees
     tag: v1.6.2
