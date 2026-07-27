@@ -1,6 +1,16 @@
 microservice-chart:
   namespace: "srtp"
 
+  deployment:
+    # Keep the IP in sync with the upstream endpoint if it changes.
+    hostAliases:
+      - ip: "20.71.68.43"
+        hostnames:
+          - "api-rtp.dev.cstar.pagopa.it"
+      - ip: "4.232.26.70"
+        hostnames:
+          - "cstar-d-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
+
   image:
     repository: ghcr.io/pagopa/rtp-activator
     tag: snapshot-main
