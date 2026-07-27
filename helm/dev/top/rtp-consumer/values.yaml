@@ -8,7 +8,7 @@ microservice-chart:
         hostnames:
           - "api-mcshared.dev.cstar.pagopa.it"
           - "api-rtp.dev.cstar.pagopa.it"
-      - ip: "4.232.26.70"
+      - ip: "10.20.0.4"
         hostnames:
           - "cstar-d-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
 
