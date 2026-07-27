@@ -7,7 +7,7 @@ microservice-chart:
       - ip: "20.31.11.237"
         hostnames:
           - "api-rtp.uat.cstar.pagopa.it"
-      - ip: "4.232.42.68"
+      - ip: "10.20.0.84"
         hostnames:
           - "cstar-u-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
 
