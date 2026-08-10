@@ -2,14 +2,7 @@ microservice-chart:
   namespace: "srtp"
 
   deployment:
-    # Keep the IP in sync with the upstream endpoint if it changes.
-    hostAliases:
-      - ip: "20.31.11.237"
-        hostnames:
-          - "api-rtp.uat.cstar.pagopa.it"
-      - ip: "10.20.0.84"
-        hostnames:
-          - "cstar-u-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
+    ndots: null
 
   image:
     repository: ghcr.io/pagopa/rtp-activator
@@ -21,23 +14,23 @@ microservice-chart:
 
   resources:
     requests:
-      cpu: "250m"
-      memory: "512Mi"
+      cpu: "500m"
+      memory: "1Gi"
     limits:
-      cpu: "250m"
-      memory: "512Mi"
+      cpu: "500m"
+      memory: "1Gi"
 
   autoscaling:
-    enable: false
-#    minReplica: 1
-#    maxReplica: 3
-#    pollingInterval: 30
-#    cooldownPeriod: 300
-#    triggers:
-#      - type: cpu
-#        metadata:
-#          type: Utilization
-#          value: "60"
+    enable: true
+    minReplica: 2
+    maxReplica: 4
+    pollingInterval: 30
+    cooldownPeriod: 300
+    triggers:
+      - type: cpu
+        metadata:
+          type: Utilization
+          value: "60"
 
   envConfig:
     BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/activation/activations/"
