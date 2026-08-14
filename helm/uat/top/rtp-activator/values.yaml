@@ -45,6 +45,9 @@ microservice-chart:
     EPC_MOCK_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/mock"
     AZURE_STORAGE_ACCOUNT_NAME: "cstaruitnsrtpsa"
     TAKEOVER_OTP_EXPIRATION: "PT2M"
+    TAKEOVER_NOTIFICATION_MAX_CONNECTIONS: "500"
+    TAKEOVER_NOTIFICATION_PENDING_QUEUE: "1000"
+    TAKEOVER_NOTIFICATION_PENDING_TIMEOUT: "PT45S"
 
   keyvault:
     name: "cstar-u-itn-srtp-kv"

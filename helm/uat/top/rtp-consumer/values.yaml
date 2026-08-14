@@ -43,6 +43,9 @@ microservice-chart:
   envConfig:
     PROCESS_GPD_MESSAGE_BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp"
     PROCESS_GPD_MESSAGE_TIMEOUT: "PT30S"
+    PROCESS_GPD_MESSAGE_MAX_CONNECTIONS: "500"
+    PROCESS_GPD_MESSAGE_PENDING_QUEUE: "1000"
+    PROCESS_GPD_MESSAGE_PENDING_TIMEOUT: "PT45S"
     MIL_AUTH_TOKEN_URL: "https://api-mcshared.uat.cstar.pagopa.it/auth-itn/realms/srtp/protocol/openid-connect/token"
     GPD_EVENTHUB_NAME: "pagopa-u-itn-gps-rtp-integration-evh"
     GPD_EVENTHUB_TOPIC: "rtp-events"
