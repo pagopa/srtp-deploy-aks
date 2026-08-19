@@ -1,6 +1,17 @@
 microservice-chart:
   namespace: "srtp"
 
+  deployment:
+    # Keep the IP in sync with the upstream endpoint if it changes.
+    hostAliases:
+      - ip: "20.31.11.237"
+        hostnames:
+          - "api-mcshared.uat.cstar.pagopa.it"
+          - "api-rtp.uat.cstar.pagopa.it"
+      - ip: "10.20.0.84"
+        hostnames:
+          - "cstar-u-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
+
   image:
     repository: ghcr.io/pagopa/rtp-consumer
     tag: snapshot-main
@@ -11,23 +22,23 @@ microservice-chart:
 
   resources:
     requests:
-      cpu: "500m"
-      memory: "1Gi"
+      cpu: "250m"
+      memory: "512Mi"
     limits:
-      cpu: "500m"
-      memory: "1Gi"
+      cpu: "250m"
+      memory: "512Mi"
 
   autoscaling:
-    enable: true
-    minReplica: 4
-    maxReplica: 6
-    pollingInterval: 30 # seconds
-    cooldownPeriod: 300 # seconds
-    triggers:
-      - type: cpu
-        metadata:
-          type: Utilization
-          value: "60"
+    enable: false
+#    minReplica: 1
+#    maxReplica: 3
+#    pollingInterval: 30
+#    cooldownPeriod: 300
+#    triggers:
+#      - type: cpu
+#        metadata:
+#          type: Utilization
+#          value: "60"
 
   envConfig:
     PROCESS_GPD_MESSAGE_BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp"
