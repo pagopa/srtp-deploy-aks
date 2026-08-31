@@ -13,7 +13,7 @@ microservice-chart:
 
   image:
     repository: ghcr.io/pagopa/rtp-activator
-    tag: v2.34.3
+    tag: v2.34.4
     pullPolicy: Always
 
   ingress:
