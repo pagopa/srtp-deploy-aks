@@ -37,6 +37,18 @@ microservice-chart:
         hostnames:
           - "cstar-d-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
 
+  tmpVolumeMount:
+    create: true
+    mounts:
+      - name: tmp
+        mountPath: /tmp
+      - name: logs
+        mountPath: /app/logs
+      - name: jks
+        mountPath: /mnt/jks/
+      - name: eidas
+        mountPath: /mnt/eidas
+
   image:
     repository: ghcr.io/pagopa/rtp-sender-v2
     tag: snapshot-main
