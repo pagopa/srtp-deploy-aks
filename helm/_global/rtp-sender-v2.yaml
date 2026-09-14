@@ -5,6 +5,9 @@ microservice-chart:
     volumeMounts:
       - mountPath: /mnt/jks/
         name: jks
+      - mountPath: /mnt/eidas
+        name: eidas
+        readOnly: true
 
   initContainers:
     - name: copy-jks
@@ -20,6 +23,16 @@ microservice-chart:
             mountPath: /mnt/share
           - name: jks
             mountPath: "/mnt/jks/"
+    - name: eidas-trust-init
+      image:
+        repository: ghcr.io/pagopa/rtp-sender-v2-eidas-trust-init
+        tag: snapshot-srtp-2259-implement-truststore
+        pullPolicy: Always
+      tmpVolumeMount:
+        create: true
+        mounts:
+          - name: eidas
+            mountPath: /out
 
   deployment:
     create: true
@@ -85,6 +98,8 @@ microservice-chart:
         mountPath: /app/logs
       - name: jks
         mountPath: /mnt/jks/
+      - name: eidas
+        mountPath: /mnt/eidas
 
   envConfig:
     TZ: "Europe/Rome"

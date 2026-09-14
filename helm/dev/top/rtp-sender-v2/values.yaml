@@ -1,31 +1,6 @@
 microservice-chart:
   namespace: "srtp"
 
-  initContainers:
-    - name: copy-jks
-      image:
-        repository: busybox
-        tag: 1.36.1@sha256:355b3a1bf5609da364166913878a8508d4ba30572d02020a97028c75477e24ff
-        pullPolicy: Always
-      command: ['sh', '-c', "mkdir -p /mnt/jks/ && cp /mnt/share/* /mnt/jks/"]
-      tmpVolumeMount:
-        create: true
-        mounts:
-          - name: share-volume
-            mountPath: /mnt/share
-          - name: jks
-            mountPath: "/mnt/jks/"
-    - name: eidas-trust-init
-      image:
-        repository: ghcr.io/pagopa/rtp-sender-v2-eidas-trust-init
-        tag: snapshot-srtp-2259-implement-truststore
-        pullPolicy: Always
-      tmpVolumeMount:
-        create: true
-        mounts:
-          - name: eidas
-            mountPath: /out
-
   deployment:
     # Keep the IP in sync with the upstream endpoint if it changes.
     hostAliases:
@@ -37,28 +12,10 @@ microservice-chart:
         hostnames:
           - "cstar-d-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
 
-  tmpVolumeMount:
-    create: true
-    mounts:
-      - name: tmp
-        mountPath: /tmp
-      - name: logs
-        mountPath: /app/logs
-      - name: jks
-        mountPath: /mnt/jks/
-      - name: eidas
-        mountPath: /mnt/eidas
-
   image:
     repository: ghcr.io/pagopa/rtp-sender-v2
     tag: snapshot-main
     pullPolicy: Always
-    volumeMounts:
-      - mountPath: /mnt/jks/
-        name: jks
-      - mountPath: /mnt/eidas
-        name: eidas
-        readOnly: true
 
   ingress:
     host: "srtp.itn.internal.dev.cstar.pagopa.it"
