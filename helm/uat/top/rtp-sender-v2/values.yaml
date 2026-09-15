@@ -127,6 +127,9 @@ microservice-chart:
       - shareName: cstar-u-itn-srtp-jks-file-share
         name: share-volume
         readOnly: true
+      - shareName: cstar-d-itn-srtp-oj-file-share
+        name: oj-file-share
+        readOnly: true
 
 postman-test:
   run: true

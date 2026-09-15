@@ -141,6 +141,9 @@ microservice-chart:
       - shareName: cstar-d-itn-srtp-eidas-cache-file-share
         name: eidas-cache
         readOnly: false
+      - shareName: cstar-d-itn-srtp-oj-file-share
+        name: oj-file-share
+        readOnly: true
 
   # nodeSelector: {}
 
