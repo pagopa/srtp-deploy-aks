@@ -33,6 +33,17 @@ microservice-chart:
         mounts:
           - name: eidas
             mountPath: /out
+          # Persistent, shared Azure File volume backing the container's
+          # CACHE_DIR default (/var/cache/eidas-trust-bundle). Without this
+          # the DSS download/parsing/validation cache and the demo OJ
+          # keystore live on the initContainer's own ephemeral filesystem
+          # and are wiped on every pod (re)start/scale-up, defeating the
+          # online cache TTL entirely (see spikes/eidas-trust-bundle in
+          # rtp-sender-v2). Backed by a dedicated file share (see
+          # azureFile.mounts in the per-env values), not the JKS one, to
+          # keep the two concerns (certs vs. DSS cache) separate.
+          - name: eidas-cache
+            mountPath: /var/cache/eidas-trust-bundle
 
   deployment:
     create: true

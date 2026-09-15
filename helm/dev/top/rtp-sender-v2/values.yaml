@@ -131,6 +131,16 @@ microservice-chart:
       - shareName: cstar-d-itn-srtp-jks-file-share
         name: share-volume
         readOnly: true
+      # Persistent cache for the eidas-trust-init initContainer (see
+      # helm/_global/rtp-sender-v2.yaml). Read-write, dedicated share so the
+      # DSS download/parsing/validation cache never mixes with the JKS
+      # certificate material on cstar-d-itn-srtp-jks-file-share.
+      # NOTE: the share itself must exist upstream (same storage account,
+      # cstarditnsrtpsa) before this is deployed, same as
+      # cstar-d-itn-srtp-jks-file-share already does.
+      - shareName: cstar-d-itn-srtp-eidas-cache-file-share
+        name: eidas-cache
+        readOnly: false
 
   # nodeSelector: {}
 
