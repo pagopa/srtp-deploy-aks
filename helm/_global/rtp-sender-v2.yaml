@@ -44,9 +44,6 @@ microservice-chart:
           # keep the two concerns (certs vs. DSS cache) separate.
           - name: eidas-cache
             mountPath: /var/cache/eidas-trust-bundle
-    # Secrets store inline volume for mounting secrets from the CSI driver
-          - name: secrets-store-inline
-            mountPath: /mnt/secrets-store
           - name: oj-file-share
             mountPath: /mnt/oj
 
