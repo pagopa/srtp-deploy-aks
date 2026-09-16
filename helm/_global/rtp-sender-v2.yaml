@@ -52,7 +52,7 @@ microservice-chart:
 
   # Applied to ALL initContainers (chart v9 has no per-container env override)
   initContainerEnvConfig:
-    TRUST_STORE_COUNTRY_LIST: "IT"
+    TRUST_STORE_COUNTRY_LIST: "*"
 
   initContainerEnvSecret:
     OJ_KEYSTORE_PASSWORD: "oj-keystore-password"
