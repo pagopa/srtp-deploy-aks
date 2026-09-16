@@ -1,0 +1,92 @@
+trigger: none
+pr: none
+
+parameters:
+  - name: ENV
+    displayName: Target Environment
+    type: string
+    default: uat
+    values:
+      - dev
+      - uat
+
+  - name: TESTS_BRANCH
+    displayName: rtp-platform-qa branch
+    type: string
+    default: main
+
+  - name: VU_COUNT
+    displayName: Virtual Users
+    type: string
+    default: '10'
+
+  - name: ITERATIONS
+    displayName: Total iterations
+    type: string
+    default: '30000'
+
+  - name: SLEEP_ITER
+    displayName: Sleep between iterations (s)
+    type: string
+    default: '0'
+
+  - name: SEED_DATA
+    displayName: Seed activation data before running the test
+    type: boolean
+    default: false
+
+  - name: TARGET_REQUESTS
+    displayName: Number of activations to seed (only used when SEED_DATA=true)
+    type: string
+    default: '2000'
+
+variables:
+  - ${{ if eq(parameters.ENV, 'dev') }}:
+      - name: agentPoolName
+        value: $(DEV_AGENT_POOL)
+      - name: azureServiceConnectionName
+        value: $(DEV_AZURE_SERVICE_CONNECTION_NAME)
+      - name: keyVaultName
+        value: $(DEV_POSTMAN_KV_NAME)
+  - ${{ if eq(parameters.ENV, 'uat') }}:
+      - name: agentPoolName
+        value: $(UAT_AGENT_POOL)
+      - name: azureServiceConnectionName
+        value: $(UAT_AZURE_SERVICE_CONNECTION_NAME)
+      - name: keyVaultName
+        value: $(UAT_POSTMAN_KV_NAME)
+
+pool:
+  vmImage: ubuntu-latest
+
+resources:
+  repositories:
+    - repository: rtpPlatformQa
+      type: github
+      name: pagopa/rtp-platform-qa
+      ref: ${{ parameters.TESTS_BRANCH }}
+      endpoint: 'srtp-bot-github-ro'
+
+name: 'k6 activation test - ${{ parameters.ENV }} - $(Date:yyyyMMdd).$(Rev:r)'
+
+stages:
+  - stage: run_k6_activation_test
+    displayName: '⚡ k6 activation test (${{ parameters.ENV }})'
+    jobs:
+      - template: templates/k6-tests-template.yml
+        parameters:
+          appsList: ['rtp-activator']
+          appCategory: 'activation'
+          env: ${{ parameters.ENV }}
+          agentPoolName: $(agentPoolName)
+          azureServiceConnection: $(azureServiceConnectionName)
+          keyVaultName: $(keyVaultName)
+          secretName: 'k6-performance-env'
+          testsBranch: ${{ parameters.TESTS_BRANCH }}
+          testScript: 'activation-finder.js'
+          vuCount: ${{ parameters.VU_COUNT }}
+          iterations: ${{ parameters.ITERATIONS }}
+          sleepIter: ${{ parameters.SLEEP_ITER }}
+          seedData: ${{ parameters.SEED_DATA }}
+          seedScript: 'create-activations.js'
+          targetRequests: ${{ parameters.TARGET_REQUESTS }}

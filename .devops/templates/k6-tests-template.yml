@@ -1,0 +1,185 @@
+parameters:
+  - name: appsList
+    displayName: 'Applications List'
+    type: object
+    default: []
+
+  - name: env
+    displayName: 'Target Environment'
+    type: string
+
+  - name: agentPoolName
+    displayName: 'Agent Pool Name'
+    type: string
+
+  - name: appCategory
+    displayName: 'App Category Identifier'
+    type: string
+    default: 'top'
+
+  - name: dependsOn
+    displayName: 'Dependent Job'
+    type: string
+    default: ''
+
+  - name: testsBranch
+    displayName: 'rtp-platform-qa Branch'
+    type: string
+    default: 'main'
+
+  - name: testScript
+    displayName: 'k6 test script (relative to performance-tests/tests/<appName>/)'
+    type: string
+
+  - name: vuCount
+    displayName: 'Virtual Users'
+    type: string
+    default: '10'
+
+  - name: iterations
+    displayName: 'Total iterations'
+    type: string
+    default: '30000'
+
+  - name: sleepIter
+    displayName: 'Sleep between iterations (s)'
+    type: string
+    default: '0'
+
+  - name: seedData
+    displayName: 'Seed activation data before running the test'
+    type: boolean
+    default: false
+
+  - name: seedScript
+    displayName: 'k6 seed script (relative to performance-tests/script/)'
+    type: string
+    default: 'create-activations.js'
+
+  - name: targetRequests
+    displayName: 'Number of records to seed (only used when seedData=true)'
+    type: string
+    default: '2000'
+
+  - name: k6Version
+    displayName: 'k6 version'
+    type: string
+    default: '0.49.0'
+
+  - name: keyVaultName
+    displayName: 'Key Vault Name'
+    type: string
+
+  - name: secretName
+    displayName: 'Secret containing k6 actor credentials (JSON)'
+    type: string
+    default: 'k6-performance-env'
+
+  - name: azureServiceConnection
+    displayName: 'Azure Subscription'
+    type: string
+
+jobs:
+- job: k6_${{ parameters.appCategory }}
+  displayName: '⚡ k6 ${{ parameters.appCategory }}'
+  timeoutInMinutes: 0
+  dependsOn: ${{ parameters.dependsOn }}
+  condition: succeeded()
+  strategy:
+    matrix:
+      ${{ each item in parameters.appsList }}:
+        ${{ replace(item, '-', '_') }}:
+          appName: ${{ item }}
+  pool:
+    name: ${{ parameters.agentPoolName }}
+
+  steps:
+    - task: AzureCLI@2
+      name: fetchK6Credentials
+      displayName: 'Fetch k6 actor credentials from Key Vault'
+      inputs:
+        azureSubscription: '${{ parameters.azureServiceConnection }}'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "🔐 Fetching k6 credentials secret..."
+          mkdir -p $(Pipeline.Workspace)/k6-secrets
+
+          az keyvault secret show \
+            --name "${{ parameters.secretName }}" \
+            --vault-name "${{ parameters.keyVaultName }}" \
+            --query 'value' -o tsv > $(Pipeline.Workspace)/k6-secrets/env.json
+
+          if ! jq empty $(Pipeline.Workspace)/k6-secrets/env.json 2>/dev/null; then
+            echo "##[error]Invalid JSON format in k6 credentials secret"
+            exit 1
+          fi
+
+          # Expected JSON shape:
+          # { "DEBTOR_SERVICE_PROVIDER_CLIENT_ID": "...",
+          #   "DEBTOR_SERVICE_PROVIDER_ID": "...",
+          #   "DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET": "..." }
+          for key in $(jq -r 'keys[]' $(Pipeline.Workspace)/k6-secrets/env.json); do
+            value=$(jq -r --arg k "$key" '.[$k]' $(Pipeline.Workspace)/k6-secrets/env.json)
+            echo "##vso[task.setvariable variable=$key;issecret=true]$value"
+          done
+          echo "✅ Credentials loaded as pipeline variables"
+
+    - script: |
+        set -e
+        echo "Installing k6 v${{ parameters.k6Version }}"
+        mkdir -p $(Pipeline.Workspace)/k6-bin
+        cd $(Pipeline.Workspace)/k6-bin
+        wget -q -O k6.tar.gz "https://github.com/grafana/k6/releases/download/v${{ parameters.k6Version }}/k6-v${{ parameters.k6Version }}-linux-amd64.tar.gz"
+        tar -xzf k6.tar.gz --strip-components=1 "k6-v${{ parameters.k6Version }}-linux-amd64/k6"
+        chmod +x k6
+        echo "##vso[task.prependpath]$(Pipeline.Workspace)/k6-bin"
+      displayName: 'Install k6 (no sudo required)'
+
+    - script: k6 version
+      displayName: 'Verify k6 installation'
+
+    - checkout: rtpPlatformQa
+      path: 'rtp-platform-qa'
+      displayName: 'Checkout rtp-platform-qa (${{ parameters.testsBranch }})'
+
+    - ${{ if eq(parameters.seedData, true) }}:
+        - script: |
+            set -e
+            cd $(Pipeline.Workspace)/rtp-platform-qa/performance-tests
+            # NOTE: create-activations.js writes always to the hardcoded path
+            # json-file/rtp-activator/activations.json regardless of $(appName);
+            # this mkdir matches it only while appsList == ['rtp-activator'].
+            mkdir -p json-file/$(appName)
+            k6 run script/${{ parameters.seedScript }} \
+              -e ENVIRONMENT=${{ parameters.env }} \
+              -e DEBTOR_SERVICE_PROVIDER_ID=$(DEBTOR_SERVICE_PROVIDER_ID) \
+              -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID=$(DEBTOR_SERVICE_PROVIDER_CLIENT_ID) \
+              -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET=$(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET) \
+              -e TARGET_REQUESTS=${{ parameters.targetRequests }}
+          displayName: 'Seed test data for $(appName)'
+
+    - script: |
+        set -e
+        cd $(Pipeline.Workspace)/rtp-platform-qa/performance-tests
+        k6 run tests/$(appName)/${{ parameters.testScript }} \
+          -e ENVIRONMENT=${{ parameters.env }} \
+          -e DEBTOR_SERVICE_PROVIDER_ID=$(DEBTOR_SERVICE_PROVIDER_ID) \
+          -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID=$(DEBTOR_SERVICE_PROVIDER_CLIENT_ID) \
+          -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET=$(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET) \
+          -e VU_COUNT_SET=${{ parameters.vuCount }} \
+          -e ITERATIONS=${{ parameters.iterations }} \
+          -e SLEEP_ITER=${{ parameters.sleepIter }}
+      displayName: 'Run k6 test: $(appName)/${{ parameters.testScript }}'
+
+    - script: |
+        mkdir -p "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)"
+        cp $(Pipeline.Workspace)/rtp-platform-qa/performance-tests/*-report.txt "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)/" 2>/dev/null || true
+        cp $(Pipeline.Workspace)/rtp-platform-qa/performance-tests/*-stress-analysis.json "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)/" 2>/dev/null || true
+      displayName: 'Collect k6 test artifacts'
+      condition: always()
+
+    - publish: '$(Build.ArtifactStagingDirectory)/k6-results'
+      displayName: 'Publish k6 test results'
+      artifact: 'k6TestResults_$(appName)'
+      condition: always()
