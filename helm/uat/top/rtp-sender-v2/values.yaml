@@ -76,6 +76,10 @@ microservice-chart:
           value: "3"
         - name: RETRY_BASE_DELAY_MS
           value: "1000"
+        - name: PAGOPA_FISCAL_CODE
+          value: "15376371009"
+        - name: PAGOPA_IBAN
+          value: "IT96K999999999900SRTPPAGOPA"
         - name: CLIENT_CERTIFICATE
           valueFrom:
             secretKeyRef:
