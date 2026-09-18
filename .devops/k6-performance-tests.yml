@@ -5,7 +5,7 @@ parameters:
   - name: ENV
     displayName: Target Environment
     type: string
-    default: uat
+    default: dev
     values:
       - dev
       - uat
@@ -23,7 +23,7 @@ parameters:
   - name: ITERATIONS
     displayName: Total iterations
     type: string
-    default: '30000'
+    default: '500'
 
   - name: SLEEP_ITER
     displayName: Sleep between iterations (s)

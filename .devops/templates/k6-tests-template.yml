@@ -82,7 +82,7 @@ parameters:
 jobs:
 - job: k6_${{ parameters.appCategory }}
   displayName: '⚡ k6 ${{ parameters.appCategory }}'
-  timeoutInMinutes: 0
+  timeoutInMinutes: 90
   dependsOn: ${{ parameters.dependsOn }}
   condition: succeeded()
   strategy:
@@ -119,11 +119,20 @@ jobs:
           # { "DEBTOR_SERVICE_PROVIDER_CLIENT_ID": "...",
           #   "DEBTOR_SERVICE_PROVIDER_ID": "...",
           #   "DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET": "..." }
+          # NOTE: values are stripped of any trailing/embedded newlines before
+          # being registered as secret variables: a raw multi-line value would
+          # only have its first line masked by ADO's log scrubber, leaking the
+          # rest in plain text.
           for key in $(jq -r 'keys[]' $(Pipeline.Workspace)/k6-secrets/env.json); do
-            value=$(jq -r --arg k "$key" '.[$k]' $(Pipeline.Workspace)/k6-secrets/env.json)
+            value=$(jq -r --arg k "$key" '.[$k]' $(Pipeline.Workspace)/k6-secrets/env.json | tr -d '\r\n')
             echo "##vso[task.setvariable variable=$key;issecret=true]$value"
           done
           echo "✅ Credentials loaded as pipeline variables"
+
+    - script: |
+        rm -rf $(Pipeline.Workspace)/k6-secrets
+      displayName: 'Remove plaintext credentials file from disk'
+      condition: always()
 
     - script: |
         set -e
