@@ -179,7 +179,11 @@ jobs:
         # (same interactive dashboard/charts as the local `--out web-dashboard`
         # mode), instead of the live server at :5665 which is useless on a
         # headless agent. Collected as a build artifact below.
-        K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=$(appName)-dashboard-report.html \
+        # K6_WEB_DASHBOARD_PERIOD is lowered from the 10s default: k6 only
+        # includes graphs when the run lasts > 3x this period, and short
+        # smoke-test runs (a few seconds) would otherwise get an empty/skipped
+        # report ("test run was short, report generation was skipped").
+        K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=$(appName)-dashboard-report.html K6_WEB_DASHBOARD_PERIOD=500ms \
         k6 run tests/$(appName)/${{ parameters.testScript }} \
           -e ENVIRONMENT=${{ parameters.env }} \
           -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
