@@ -64,7 +64,7 @@ parameters:
   - name: k6Version
     displayName: 'k6 version'
     type: string
-    default: '0.49.0'
+    default: '2.2.0'
 
   - name: keyVaultName
     displayName: 'Key Vault Name'
@@ -162,24 +162,36 @@ jobs:
             mkdir -p json-file/$(appName)
             k6 run script/${{ parameters.seedScript }} \
               -e ENVIRONMENT=${{ parameters.env }} \
-              -e DEBTOR_SERVICE_PROVIDER_ID=$(DEBTOR_SERVICE_PROVIDER_ID) \
-              -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID=$(DEBTOR_SERVICE_PROVIDER_CLIENT_ID) \
-              -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET=$(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET) \
+              -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
+              -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID="$DEBTOR_SERVICE_PROVIDER_CLIENT_ID" \
+              -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET="$DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET" \
               -e TARGET_REQUESTS=${{ parameters.targetRequests }}
           displayName: 'Seed test data for $(appName)'
+          # Secret pipeline variables are NOT substituted via $(name) macro
+          # syntax in script bodies; they must be mapped explicitly as env vars.
+          env:
+            DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
+            DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
+            DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
 
     - script: |
         set -e
         cd $(Pipeline.Workspace)/rtp-platform-qa/performance-tests
         k6 run tests/$(appName)/${{ parameters.testScript }} \
           -e ENVIRONMENT=${{ parameters.env }} \
-          -e DEBTOR_SERVICE_PROVIDER_ID=$(DEBTOR_SERVICE_PROVIDER_ID) \
-          -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID=$(DEBTOR_SERVICE_PROVIDER_CLIENT_ID) \
-          -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET=$(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET) \
+          -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
+          -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID="$DEBTOR_SERVICE_PROVIDER_CLIENT_ID" \
+          -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET="$DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET" \
           -e VU_COUNT_SET=${{ parameters.vuCount }} \
           -e ITERATIONS=${{ parameters.iterations }} \
           -e SLEEP_ITER=${{ parameters.sleepIter }}
       displayName: 'Run k6 test: $(appName)/${{ parameters.testScript }}'
+      # Secret pipeline variables are NOT substituted via $(name) macro
+      # syntax in script bodies; they must be mapped explicitly as env vars.
+      env:
+        DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
+        DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
+        DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
 
     - script: |
         mkdir -p "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)"
