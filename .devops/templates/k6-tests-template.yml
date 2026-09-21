@@ -167,8 +167,6 @@ jobs:
               -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET="$DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET" \
               -e TARGET_REQUESTS=${{ parameters.targetRequests }}
           displayName: 'Seed test data for $(appName)'
-          # Secret pipeline variables are NOT substituted via $(name) macro
-          # syntax in script bodies; they must be mapped explicitly as env vars.
           env:
             DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
             DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
@@ -177,6 +175,11 @@ jobs:
     - script: |
         set -e
         cd $(Pipeline.Workspace)/rtp-platform-qa/performance-tests
+        # K6_WEB_DASHBOARD_EXPORT produces a self-contained static HTML report
+        # (same interactive dashboard/charts as the local `--out web-dashboard`
+        # mode), instead of the live server at :5665 which is useless on a
+        # headless agent. Collected as a build artifact below.
+        K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=$(appName)-dashboard-report.html \
         k6 run tests/$(appName)/${{ parameters.testScript }} \
           -e ENVIRONMENT=${{ parameters.env }} \
           -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
@@ -186,8 +189,6 @@ jobs:
           -e ITERATIONS=${{ parameters.iterations }} \
           -e SLEEP_ITER=${{ parameters.sleepIter }}
       displayName: 'Run k6 test: $(appName)/${{ parameters.testScript }}'
-      # Secret pipeline variables are NOT substituted via $(name) macro
-      # syntax in script bodies; they must be mapped explicitly as env vars.
       env:
         DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
         DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
@@ -197,6 +198,7 @@ jobs:
         mkdir -p "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)"
         cp $(Pipeline.Workspace)/rtp-platform-qa/performance-tests/*-report.txt "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)/" 2>/dev/null || true
         cp $(Pipeline.Workspace)/rtp-platform-qa/performance-tests/*-stress-analysis.json "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)/" 2>/dev/null || true
+        cp $(Pipeline.Workspace)/rtp-platform-qa/performance-tests/*-dashboard-report.html "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)/" 2>/dev/null || true
       displayName: 'Collect k6 test artifacts'
       condition: always()
 
