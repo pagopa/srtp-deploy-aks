@@ -15,13 +15,26 @@ parameters:
     type: string
     default: main
 
+  - name: SCENARIO
+    displayName: Load profile
+    type: string
+    default: custom
+    values:
+      - custom
+      - stress_test
+      - soak_test
+      - spike_test
+      - stress_test_fixed_user
+      - soak_test_fixed_user
+      - spike_test_fixed_user
+
   - name: VU_COUNT
-    displayName: Virtual Users
+    displayName: Virtual Users (only used when SCENARIO=custom)
     type: string
     default: '10'
 
   - name: ITERATIONS
-    displayName: Total iterations
+    displayName: Total iterations (only used when SCENARIO=custom)
     type: string
     default: '500'
 
@@ -84,6 +97,7 @@ stages:
           secretName: 'k6-performance-env'
           testsBranch: ${{ parameters.TESTS_BRANCH }}
           testScript: 'activation-finder.js'
+          scenario: ${{ parameters.SCENARIO }}
           vuCount: ${{ parameters.VU_COUNT }}
           iterations: ${{ parameters.ITERATIONS }}
           sleepIter: ${{ parameters.SLEEP_ITER }}

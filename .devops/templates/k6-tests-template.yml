@@ -31,6 +31,11 @@ parameters:
     displayName: 'k6 test script (relative to performance-tests/tests/<appName>/)'
     type: string
 
+  - name: scenario
+    displayName: 'k6 SCENARIO env var (custom | stress_test | soak_test | spike_test | *_fixed_user)'
+    type: string
+    default: 'custom'
+
   - name: vuCount
     displayName: 'Virtual Users'
     type: string
@@ -189,6 +194,7 @@ jobs:
           -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
           -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID="$DEBTOR_SERVICE_PROVIDER_CLIENT_ID" \
           -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET="$DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET" \
+          -e SCENARIO=${{ parameters.scenario }} \
           -e VU_COUNT_SET=${{ parameters.vuCount }} \
           -e ITERATIONS=${{ parameters.iterations }} \
           -e SLEEP_ITER=${{ parameters.sleepIter }}
