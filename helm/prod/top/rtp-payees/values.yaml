@@ -8,6 +8,10 @@ microservice-chart:
         hostnames:
           - "api-rtp.cstar.pagopa.it"
 
+#  podDisruptionBudget:
+#    create: true
+#    minAvailable: 2
+
   image:
     repository: ghcr.io/pagopa/rtp-payees
     tag: v1.7.0
@@ -26,8 +30,8 @@ microservice-chart:
 
   autoscaling:
     enable: false
-  #    minReplica: 1
-  #    maxReplica: 3
+  #    minReplica: 3
+  #    maxReplica: 6
   #    pollingInterval: 30 # seconds
   #    cooldownPeriod: 300 # seconds
   #    triggers:

@@ -12,6 +12,10 @@ microservice-chart:
         hostnames:
           - "cstar-u-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
 
+#  podDisruptionBudget:
+#    create: true
+#    minAvailable: 2
+
   image:
     repository: ghcr.io/pagopa/rtp-sender-v2
     tag: snapshot-main
@@ -30,8 +34,8 @@ microservice-chart:
 
   autoscaling:
     enable: false
-#    minReplica: 1
-#    maxReplica: 3
+#    minReplica: 3
+#    maxReplica: 6
 #    pollingInterval: 30
 #    cooldownPeriod: 300
 #    triggers:
