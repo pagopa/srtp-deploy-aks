@@ -43,6 +43,56 @@ parameters:
     type: string
     default: '0'
 
+  - name: RAMP_START_RATE
+    displayName: 'stress_test: start rate (req/s, only used when SCENARIO=stress_test)'
+    type: string
+    default: '10'
+
+  - name: RAMP_PEAK_RATE
+    displayName: 'stress_test: peak rate (req/s, only used when SCENARIO=stress_test)'
+    type: string
+    default: '5000'
+
+  - name: RAMP_STEPS
+    displayName: 'stress_test: number of staircase steps (only used when SCENARIO=stress_test)'
+    type: string
+    default: '10'
+
+  - name: RAMP_STEP_DURATION
+    displayName: 'stress_test: duration held at each step, e.g. 30s (only used when SCENARIO=stress_test)'
+    type: string
+    default: '30s'
+
+  - name: SOAK_RATE
+    displayName: 'soak_test: constant rate (req/s, only used when SCENARIO=soak_test)'
+    type: string
+    default: '20'
+
+  - name: SOAK_DURATION
+    displayName: 'soak_test: total duration, e.g. 5m (only used when SCENARIO=soak_test)'
+    type: string
+    default: '5m'
+
+  - name: SPIKE_BASE_RATE
+    displayName: 'spike_test: baseline rate (req/s, only used when SCENARIO=spike_test)'
+    type: string
+    default: '10'
+
+  - name: SPIKE_PEAK_RATE
+    displayName: 'spike_test: peak rate during the burst (req/s, only used when SCENARIO=spike_test)'
+    type: string
+    default: '300'
+
+  - name: SPIKE_RAMP_DURATION
+    displayName: 'spike_test: ramp up/down duration, e.g. 10s (only used when SCENARIO=spike_test)'
+    type: string
+    default: '10s'
+
+  - name: SPIKE_HOLD_DURATION
+    displayName: 'spike_test: duration held at peak, e.g. 30s (only used when SCENARIO=spike_test)'
+    type: string
+    default: '30s'
+
   - name: SEED_DATA
     displayName: Seed activation data before running the test
     type: boolean
@@ -101,6 +151,16 @@ stages:
           vuCount: ${{ parameters.VU_COUNT }}
           iterations: ${{ parameters.ITERATIONS }}
           sleepIter: ${{ parameters.SLEEP_ITER }}
+          rampStartRate: ${{ parameters.RAMP_START_RATE }}
+          rampPeakRate: ${{ parameters.RAMP_PEAK_RATE }}
+          rampSteps: ${{ parameters.RAMP_STEPS }}
+          rampStepDuration: ${{ parameters.RAMP_STEP_DURATION }}
+          soakRate: ${{ parameters.SOAK_RATE }}
+          soakDuration: ${{ parameters.SOAK_DURATION }}
+          spikeBaseRate: ${{ parameters.SPIKE_BASE_RATE }}
+          spikePeakRate: ${{ parameters.SPIKE_PEAK_RATE }}
+          spikeRampDuration: ${{ parameters.SPIKE_RAMP_DURATION }}
+          spikeHoldDuration: ${{ parameters.SPIKE_HOLD_DURATION }}
           seedData: ${{ parameters.SEED_DATA }}
           seedScript: 'create-activations.js'
           targetRequests: ${{ parameters.TARGET_REQUESTS }}

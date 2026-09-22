@@ -51,6 +51,56 @@ parameters:
     type: string
     default: '0'
 
+  - name: rampStartRate
+    displayName: 'stress_test: start rate (req/s)'
+    type: string
+    default: '10'
+
+  - name: rampPeakRate
+    displayName: 'stress_test: peak rate (req/s)'
+    type: string
+    default: '5000'
+
+  - name: rampSteps
+    displayName: 'stress_test: number of staircase steps'
+    type: string
+    default: '10'
+
+  - name: rampStepDuration
+    displayName: 'stress_test: duration held at each step'
+    type: string
+    default: '30s'
+
+  - name: soakRate
+    displayName: 'soak_test: constant rate (req/s)'
+    type: string
+    default: '20'
+
+  - name: soakDuration
+    displayName: 'soak_test: total duration'
+    type: string
+    default: '5m'
+
+  - name: spikeBaseRate
+    displayName: 'spike_test: baseline rate (req/s)'
+    type: string
+    default: '10'
+
+  - name: spikePeakRate
+    displayName: 'spike_test: peak rate during the burst (req/s)'
+    type: string
+    default: '300'
+
+  - name: spikeRampDuration
+    displayName: 'spike_test: ramp up/down duration'
+    type: string
+    default: '10s'
+
+  - name: spikeHoldDuration
+    displayName: 'spike_test: duration held at peak'
+    type: string
+    default: '30s'
+
   - name: seedData
     displayName: 'Seed activation data before running the test'
     type: boolean
@@ -197,7 +247,17 @@ jobs:
           -e SCENARIO=${{ parameters.scenario }} \
           -e VU_COUNT_SET=${{ parameters.vuCount }} \
           -e ITERATIONS=${{ parameters.iterations }} \
-          -e SLEEP_ITER=${{ parameters.sleepIter }}
+          -e SLEEP_ITER=${{ parameters.sleepIter }} \
+          -e RAMP_START_RATE=${{ parameters.rampStartRate }} \
+          -e RAMP_PEAK_RATE=${{ parameters.rampPeakRate }} \
+          -e RAMP_STEPS=${{ parameters.rampSteps }} \
+          -e RAMP_STEP_DURATION=${{ parameters.rampStepDuration }} \
+          -e SOAK_RATE=${{ parameters.soakRate }} \
+          -e SOAK_DURATION=${{ parameters.soakDuration }} \
+          -e SPIKE_BASE_RATE=${{ parameters.spikeBaseRate }} \
+          -e SPIKE_PEAK_RATE=${{ parameters.spikePeakRate }} \
+          -e SPIKE_RAMP_DURATION=${{ parameters.spikeRampDuration }} \
+          -e SPIKE_HOLD_DURATION=${{ parameters.spikeHoldDuration }}
       displayName: 'Run k6 test: $(appName)/${{ parameters.testScript }}'
       env:
         DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
