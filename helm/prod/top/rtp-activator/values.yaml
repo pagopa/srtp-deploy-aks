@@ -29,8 +29,8 @@ microservice-chart:
 
   autoscaling:
     enable: true
-    minReplica: 2
-    maxReplica: 4
+    minReplica: 4
+    maxReplica: 6
     pollingInterval: 30
     cooldownPeriod: 300
     triggers:
@@ -38,6 +38,10 @@ microservice-chart:
         metadata:
           type: Utilization
           value: "60"
+
+  podDisruptionBudget:
+    create: true
+    minAvailable: 2
 
   envConfig:
     BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/activation/activations/"

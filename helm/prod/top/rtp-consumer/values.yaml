@@ -40,6 +40,10 @@ microservice-chart:
           type: Utilization
           value: "60"
 
+  podDisruptionBudget:
+    create: true
+    minAvailable: 2
+
   envConfig:
     PROCESS_GPD_MESSAGE_BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp"
     PROCESS_GPD_MESSAGE_TIMEOUT: "PT30S"
