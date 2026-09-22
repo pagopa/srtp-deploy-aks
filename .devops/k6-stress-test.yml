@@ -30,14 +30,14 @@ parameters:
       # scripts get wired into this pipeline.
 
   - name: RAMP_START_RATE
-    displayName: 'Start rate (req/s)'
+    displayName: 'Start rate (req/s) - tune down for dev, up for uat/prod-like'
     type: string
-    default: '10'
+    default: '2'
 
   - name: RAMP_PEAK_RATE
-    displayName: 'Peak rate (req/s)'
+    displayName: 'Peak rate (req/s) - tune down for dev, up for uat/prod-like'
     type: string
-    default: '5000'
+    default: '50'
 
   - name: RAMP_STEPS
     displayName: 'Number of staircase steps'
@@ -47,7 +47,7 @@ parameters:
   - name: RAMP_STEP_DURATION
     displayName: 'Duration held at each step, e.g. 30s'
     type: string
-    default: '30s'
+    default: '20s'
 
   - name: SEED_DATA
     displayName: Seed activation data before running the test

@@ -30,14 +30,14 @@ parameters:
       # scripts get wired into this pipeline.
 
   - name: SOAK_RATE
-    displayName: 'Constant rate (req/s)'
+    displayName: 'Constant rate (req/s) - tune down for dev, up for uat/prod-like'
     type: string
-    default: '20'
+    default: '5'
 
   - name: SOAK_DURATION
     displayName: 'Total duration, e.g. 5m'
     type: string
-    default: '5m'
+    default: '1m'
 
   - name: SEED_DATA
     displayName: Seed activation data before running the test
