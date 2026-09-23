@@ -12,6 +12,10 @@ microservice-chart:
         hostnames:
           - "cstar-u-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
 
+#  podDisruptionBudget:
+#    create: true
+#    minAvailable: 2
+
   image:
     repository: ghcr.io/pagopa/rtp-sender-v2
     tag: snapshot-main
@@ -30,8 +34,8 @@ microservice-chart:
 
   autoscaling:
     enable: false
-#    minReplica: 1
-#    maxReplica: 3
+#    minReplica: 3
+#    maxReplica: 6
 #    pollingInterval: 30
 #    cooldownPeriod: 300
 #    triggers:
@@ -80,6 +84,10 @@ microservice-chart:
           value: "3"
         - name: RETRY_BASE_DELAY_MS
           value: "1000"
+        - name: PAGOPA_FISCAL_CODE
+          value: "15376371009"
+        - name: PAGOPA_IBAN
+          value: "IT96K999999999900SRTPPAGOPA"
         - name: CLIENT_CERTIFICATE
           valueFrom:
             secretKeyRef:
