@@ -26,7 +26,7 @@ microservice-chart:
     - name: eidas-trust-init
       image:
         repository: ghcr.io/pagopa/rtp-sender-v2-eidas-trust-init
-        tag: snapshot-SRTP-2259-main
+        tag: snapshot-main
         pullPolicy: Always
       tmpVolumeMount:
         create: true
