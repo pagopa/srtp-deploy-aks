@@ -38,33 +38,33 @@ parameters:
 
   - name: vuCount
     displayName: 'Virtual Users'
-    type: string
-    default: '10'
+    type: number
+    default: 10
 
   - name: iterations
     displayName: 'Total iterations'
-    type: string
-    default: '30000'
+    type: number
+    default: 30000
 
   - name: sleepIter
     displayName: 'Sleep between iterations (s)'
-    type: string
-    default: '0'
+    type: number
+    default: 0
 
   - name: rampStartRate
     displayName: 'stress_test: start rate (req/s)'
-    type: string
-    default: '10'
+    type: number
+    default: 10
 
   - name: rampPeakRate
     displayName: 'stress_test: peak rate (req/s)'
-    type: string
-    default: '5000'
+    type: number
+    default: 5000
 
   - name: rampSteps
     displayName: 'stress_test: number of staircase steps'
-    type: string
-    default: '10'
+    type: number
+    default: 10
 
   - name: rampStepDuration
     displayName: 'stress_test: duration held at each step'
@@ -73,8 +73,8 @@ parameters:
 
   - name: soakRate
     displayName: 'soak_test: constant rate (req/s)'
-    type: string
-    default: '20'
+    type: number
+    default: 20
 
   - name: soakDuration
     displayName: 'soak_test: total duration'
@@ -83,13 +83,13 @@ parameters:
 
   - name: spikeBaseRate
     displayName: 'spike_test: baseline rate (req/s)'
-    type: string
-    default: '10'
+    type: number
+    default: 10
 
   - name: spikePeakRate
     displayName: 'spike_test: peak rate during the burst (req/s)'
-    type: string
-    default: '300'
+    type: number
+    default: 300
 
   - name: spikeRampDuration
     displayName: 'spike_test: ramp up/down duration'
@@ -113,8 +113,8 @@ parameters:
 
   - name: targetRequests
     displayName: 'Number of records to seed (only used when seedData=true)'
-    type: string
-    default: '2000'
+    type: number
+    default: 2000
 
   - name: k6Version
     displayName: 'k6 version'
@@ -215,14 +215,20 @@ jobs:
             # json-file/rtp-activator/activations.json regardless of $(appName);
             # this mkdir matches it only while appsList == ['rtp-activator'].
             mkdir -p json-file/$(appName)
-            k6 run script/${{ parameters.seedScript }} \
-              -e ENVIRONMENT=${{ parameters.env }} \
+            k6 run "script/$SEED_SCRIPT" \
+              -e ENVIRONMENT="$ENVIRONMENT" \
               -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
               -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID="$DEBTOR_SERVICE_PROVIDER_CLIENT_ID" \
               -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET="$DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET" \
-              -e TARGET_REQUESTS=${{ parameters.targetRequests }}
+              -e TARGET_REQUESTS="$TARGET_REQUESTS"
           displayName: 'Seed test data for $(appName)'
           env:
+            # Passed as real environment variables (not interpolated into the
+            # script text) so that pipeline-parameter values can never be
+            # interpreted as shell syntax/commands, regardless of their content.
+            SEED_SCRIPT: ${{ parameters.seedScript }}
+            ENVIRONMENT: ${{ parameters.env }}
+            TARGET_REQUESTS: ${{ parameters.targetRequests }}
             DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
             DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
             DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
@@ -239,27 +245,43 @@ jobs:
         # smoke-test runs (a few seconds) would otherwise get an empty/skipped
         # report ("test run was short, report generation was skipped").
         K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=$(appName)-dashboard-report.html K6_WEB_DASHBOARD_PERIOD=500ms \
-        k6 run tests/$(appName)/${{ parameters.testScript }} \
-          -e ENVIRONMENT=${{ parameters.env }} \
+        k6 run "tests/$(appName)/$TEST_SCRIPT" \
+          -e ENVIRONMENT="$ENVIRONMENT" \
           -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
           -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID="$DEBTOR_SERVICE_PROVIDER_CLIENT_ID" \
           -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET="$DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET" \
-          -e SCENARIO=${{ parameters.scenario }} \
-          -e VU_COUNT_SET=${{ parameters.vuCount }} \
-          -e ITERATIONS=${{ parameters.iterations }} \
-          -e SLEEP_ITER=${{ parameters.sleepIter }} \
-          -e RAMP_START_RATE=${{ parameters.rampStartRate }} \
-          -e RAMP_PEAK_RATE=${{ parameters.rampPeakRate }} \
-          -e RAMP_STEPS=${{ parameters.rampSteps }} \
-          -e RAMP_STEP_DURATION=${{ parameters.rampStepDuration }} \
-          -e SOAK_RATE=${{ parameters.soakRate }} \
-          -e SOAK_DURATION=${{ parameters.soakDuration }} \
-          -e SPIKE_BASE_RATE=${{ parameters.spikeBaseRate }} \
-          -e SPIKE_PEAK_RATE=${{ parameters.spikePeakRate }} \
-          -e SPIKE_RAMP_DURATION=${{ parameters.spikeRampDuration }} \
-          -e SPIKE_HOLD_DURATION=${{ parameters.spikeHoldDuration }}
+          -e SCENARIO="$SCENARIO" \
+          -e VU_COUNT_SET="$VU_COUNT_SET" \
+          -e ITERATIONS="$ITERATIONS" \
+          -e SLEEP_ITER="$SLEEP_ITER" \
+          -e RAMP_START_RATE="$RAMP_START_RATE" \
+          -e RAMP_PEAK_RATE="$RAMP_PEAK_RATE" \
+          -e RAMP_STEPS="$RAMP_STEPS" \
+          -e RAMP_STEP_DURATION="$RAMP_STEP_DURATION" \
+          -e SOAK_RATE="$SOAK_RATE" \
+          -e SOAK_DURATION="$SOAK_DURATION" \
+          -e SPIKE_BASE_RATE="$SPIKE_BASE_RATE" \
+          -e SPIKE_PEAK_RATE="$SPIKE_PEAK_RATE" \
+          -e SPIKE_RAMP_DURATION="$SPIKE_RAMP_DURATION" \
+          -e SPIKE_HOLD_DURATION="$SPIKE_HOLD_DURATION"
       displayName: 'Run k6 test: $(appName)/${{ parameters.testScript }}'
       env:
+        TEST_SCRIPT: ${{ parameters.testScript }}
+        ENVIRONMENT: ${{ parameters.env }}
+        SCENARIO: ${{ parameters.scenario }}
+        VU_COUNT_SET: ${{ parameters.vuCount }}
+        ITERATIONS: ${{ parameters.iterations }}
+        SLEEP_ITER: ${{ parameters.sleepIter }}
+        RAMP_START_RATE: ${{ parameters.rampStartRate }}
+        RAMP_PEAK_RATE: ${{ parameters.rampPeakRate }}
+        RAMP_STEPS: ${{ parameters.rampSteps }}
+        RAMP_STEP_DURATION: ${{ parameters.rampStepDuration }}
+        SOAK_RATE: ${{ parameters.soakRate }}
+        SOAK_DURATION: ${{ parameters.soakDuration }}
+        SPIKE_BASE_RATE: ${{ parameters.spikeBaseRate }}
+        SPIKE_PEAK_RATE: ${{ parameters.spikePeakRate }}
+        SPIKE_RAMP_DURATION: ${{ parameters.spikeRampDuration }}
+        SPIKE_HOLD_DURATION: ${{ parameters.spikeHoldDuration }}
         DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
         DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
         DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
