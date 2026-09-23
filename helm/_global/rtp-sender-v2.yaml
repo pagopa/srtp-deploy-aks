@@ -47,7 +47,8 @@ microservice-chart:
           - name: oj-file-share
             mountPath: /mnt/oj
 
-  # Applied to ALL initContainers (chart v9 has no per-container env override)
+  # Applied to ALL initContainers because this chart configuration does not
+  # support per-container env overrides for init containers.
   initContainerEnvConfig:
     TRUST_STORE_COUNTRY_LIST: "*"
 
