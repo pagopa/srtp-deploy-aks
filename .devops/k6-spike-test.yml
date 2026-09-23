@@ -1,0 +1,120 @@
+trigger: none
+pr: none
+
+# "spike_test" k6 load profile: a baseline rate, a sudden burst to a peak
+# rate, held briefly, then back to baseline (k6 ramping-arrival-rate
+# executor), meant to test recovery behavior. See buildSpikeTestScenario() in
+# rtp-platform-qa's performance-tests/utils/utils.js for the exact mechanics.
+
+parameters:
+  - name: ENV
+    displayName: Target Environment
+    type: string
+    default: dev
+    values:
+      - dev
+      - uat
+
+  - name: TESTS_BRANCH
+    displayName: rtp-platform-qa branch
+    type: string
+    default: main
+
+  - name: TEST_TARGET
+    displayName: Endpoint to test
+    type: string
+    default: activation
+    values:
+      - activation
+      # Add more values here (+ a matching job block below) as new k6 test
+      # scripts get wired into this pipeline.
+
+  - name: SPIKE_BASE_RATE
+    displayName: 'Baseline rate (req/s) - tune down for dev, up for uat/prod-like'
+    type: string
+    default: '2'
+
+  - name: SPIKE_PEAK_RATE
+    displayName: 'Peak rate during the burst (req/s) - tune down for dev, up for uat/prod-like'
+    type: string
+    default: '15'
+
+  - name: SPIKE_RAMP_DURATION
+    displayName: 'Ramp up/down duration, e.g. 10s'
+    type: string
+    default: '10s'
+
+  - name: SPIKE_HOLD_DURATION
+    displayName: 'Duration held at peak, e.g. 30s'
+    type: string
+    default: '15s'
+
+  - name: SEED_DATA
+    displayName: Seed activation data before running the test
+    type: boolean
+    default: false
+
+  - name: TARGET_REQUESTS
+    displayName: Number of activations to seed (only used when SEED_DATA=true)
+    type: string
+    default: '2000'
+
+variables:
+  - ${{ if eq(parameters.ENV, 'dev') }}:
+      - name: agentPoolName
+        value: $(DEV_AGENT_POOL)
+      - name: azureServiceConnectionName
+        value: $(DEV_AZURE_SERVICE_CONNECTION_NAME)
+      - name: keyVaultName
+        value: $(DEV_POSTMAN_KV_NAME)
+  - ${{ if eq(parameters.ENV, 'uat') }}:
+      - name: agentPoolName
+        value: $(UAT_AGENT_POOL)
+      - name: azureServiceConnectionName
+        value: $(UAT_AZURE_SERVICE_CONNECTION_NAME)
+      - name: keyVaultName
+        value: $(UAT_POSTMAN_KV_NAME)
+
+pool:
+  vmImage: ubuntu-latest
+
+resources:
+  repositories:
+    - repository: rtpPlatformQa
+      type: github
+      name: pagopa/rtp-platform-qa
+      ref: ${{ parameters.TESTS_BRANCH }}
+      endpoint: 'srtp-bot-github-ro'
+
+name: 'k6 spike test - ${{ parameters.ENV }} - $(Date:yyyyMMdd).$(Rev:r)'
+
+stages:
+  - stage: run_k6_spike_test
+    displayName: '⚡ k6 spike test (${{ parameters.ENV }})'
+    jobs:
+      # NOTE: appCategory/testScript/seedScript are resolved at compile-time
+      # (used to build job identifiers), so TEST_TARGET must be branched here
+      # with a literal per-value job block rather than a shared variable.
+      - ${{ if eq(parameters.TEST_TARGET, 'activation') }}:
+          - template: templates/k6-tests-template.yml
+            parameters:
+              appsList: ['rtp-activator']
+              appCategory: 'activation'
+              env: ${{ parameters.ENV }}
+              agentPoolName: $(agentPoolName)
+              azureServiceConnection: $(azureServiceConnectionName)
+              keyVaultName: $(keyVaultName)
+              secretName: 'k6-performance-env'
+              testsBranch: ${{ parameters.TESTS_BRANCH }}
+              testScript: 'activation-finder.js'
+              scenario: 'spike_test'
+              spikeBaseRate: ${{ parameters.SPIKE_BASE_RATE }}
+              spikePeakRate: ${{ parameters.SPIKE_PEAK_RATE }}
+              spikeRampDuration: ${{ parameters.SPIKE_RAMP_DURATION }}
+              spikeHoldDuration: ${{ parameters.SPIKE_HOLD_DURATION }}
+              seedData: ${{ parameters.SEED_DATA }}
+              seedScript: 'create-activations.js'
+              targetRequests: ${{ parameters.TARGET_REQUESTS }}
+      # Add more ${{ if eq(parameters.TEST_TARGET, '...') }} blocks here for
+      # future endpoints (deactivation, callback, ...), each pointing to its
+      # own testScript/seedScript/appCategory.

@@ -1,0 +1,300 @@
+parameters:
+  - name: appsList
+    displayName: 'Applications List'
+    type: object
+    default: []
+
+  - name: env
+    displayName: 'Target Environment'
+    type: string
+
+  - name: agentPoolName
+    displayName: 'Agent Pool Name'
+    type: string
+
+  - name: appCategory
+    displayName: 'App Category Identifier'
+    type: string
+    default: 'top'
+
+  - name: dependsOn
+    displayName: 'Dependent Job'
+    type: string
+    default: ''
+
+  - name: testsBranch
+    displayName: 'rtp-platform-qa Branch'
+    type: string
+    default: 'main'
+
+  - name: testScript
+    displayName: 'k6 test script (relative to performance-tests/tests/<appName>/)'
+    type: string
+
+  - name: scenario
+    displayName: 'k6 SCENARIO env var (custom | stress_test | soak_test | spike_test | *_fixed_user)'
+    type: string
+    default: 'custom'
+
+  - name: vuCount
+    displayName: 'Virtual Users'
+    type: number
+    default: 10
+
+  - name: iterations
+    displayName: 'Total iterations'
+    type: number
+    default: 30000
+
+  - name: sleepIter
+    displayName: 'Sleep between iterations (s)'
+    type: number
+    default: 0
+
+  - name: rampStartRate
+    displayName: 'stress_test: start rate (req/s)'
+    type: number
+    default: 10
+
+  - name: rampPeakRate
+    displayName: 'stress_test: peak rate (req/s)'
+    type: number
+    default: 5000
+
+  - name: rampSteps
+    displayName: 'stress_test: number of staircase steps'
+    type: number
+    default: 10
+
+  - name: rampStepDuration
+    displayName: 'stress_test: duration held at each step'
+    type: string
+    default: '30s'
+
+  - name: soakRate
+    displayName: 'soak_test: constant rate (req/s)'
+    type: number
+    default: 20
+
+  - name: soakDuration
+    displayName: 'soak_test: total duration'
+    type: string
+    default: '5m'
+
+  - name: spikeBaseRate
+    displayName: 'spike_test: baseline rate (req/s)'
+    type: number
+    default: 10
+
+  - name: spikePeakRate
+    displayName: 'spike_test: peak rate during the burst (req/s)'
+    type: number
+    default: 300
+
+  - name: spikeRampDuration
+    displayName: 'spike_test: ramp up/down duration'
+    type: string
+    default: '10s'
+
+  - name: spikeHoldDuration
+    displayName: 'spike_test: duration held at peak'
+    type: string
+    default: '30s'
+
+  - name: seedData
+    displayName: 'Seed activation data before running the test'
+    type: boolean
+    default: false
+
+  - name: seedScript
+    displayName: 'k6 seed script (relative to performance-tests/script/)'
+    type: string
+    default: 'create-activations.js'
+
+  - name: targetRequests
+    displayName: 'Number of records to seed (only used when seedData=true)'
+    type: number
+    default: 2000
+
+  - name: k6Version
+    displayName: 'k6 version'
+    type: string
+    default: '2.2.0'
+
+  - name: keyVaultName
+    displayName: 'Key Vault Name'
+    type: string
+
+  - name: secretName
+    displayName: 'Secret containing k6 actor credentials (JSON)'
+    type: string
+    default: 'k6-performance-env'
+
+  - name: azureServiceConnection
+    displayName: 'Azure Subscription'
+    type: string
+
+jobs:
+- job: k6_${{ parameters.appCategory }}
+  displayName: '⚡ k6 ${{ parameters.appCategory }}'
+  timeoutInMinutes: 90
+  dependsOn: ${{ parameters.dependsOn }}
+  condition: succeeded()
+  strategy:
+    matrix:
+      ${{ each item in parameters.appsList }}:
+        ${{ replace(item, '-', '_') }}:
+          appName: ${{ item }}
+  pool:
+    name: ${{ parameters.agentPoolName }}
+
+  steps:
+    - task: AzureCLI@2
+      name: fetchK6Credentials
+      displayName: 'Fetch k6 actor credentials from Key Vault'
+      inputs:
+        azureSubscription: '${{ parameters.azureServiceConnection }}'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "🔐 Fetching k6 credentials secret..."
+          mkdir -p $(Pipeline.Workspace)/k6-secrets
+
+          az keyvault secret show \
+            --name "${{ parameters.secretName }}" \
+            --vault-name "${{ parameters.keyVaultName }}" \
+            --query 'value' -o tsv > $(Pipeline.Workspace)/k6-secrets/env.json
+
+          if ! jq empty $(Pipeline.Workspace)/k6-secrets/env.json 2>/dev/null; then
+            echo "##[error]Invalid JSON format in k6 credentials secret"
+            exit 1
+          fi
+
+          # Expected JSON shape:
+          # { "DEBTOR_SERVICE_PROVIDER_CLIENT_ID": "...",
+          #   "DEBTOR_SERVICE_PROVIDER_ID": "...",
+          #   "DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET": "..." }
+          # NOTE: values are stripped of any trailing/embedded newlines before
+          # being registered as secret variables: a raw multi-line value would
+          # only have its first line masked by ADO's log scrubber, leaking the
+          # rest in plain text.
+          for key in $(jq -r 'keys[]' $(Pipeline.Workspace)/k6-secrets/env.json); do
+            value=$(jq -r --arg k "$key" '.[$k]' $(Pipeline.Workspace)/k6-secrets/env.json | tr -d '\r\n')
+            echo "##vso[task.setvariable variable=$key;issecret=true]$value"
+          done
+          echo "✅ Credentials loaded as pipeline variables"
+
+    - script: |
+        rm -rf $(Pipeline.Workspace)/k6-secrets
+      displayName: 'Remove plaintext credentials file from disk'
+      condition: always()
+
+    - script: |
+        set -e
+        echo "Installing k6 v${{ parameters.k6Version }}"
+        mkdir -p $(Pipeline.Workspace)/k6-bin
+        cd $(Pipeline.Workspace)/k6-bin
+        wget -q -O k6.tar.gz "https://github.com/grafana/k6/releases/download/v${{ parameters.k6Version }}/k6-v${{ parameters.k6Version }}-linux-amd64.tar.gz"
+        tar -xzf k6.tar.gz --strip-components=1 "k6-v${{ parameters.k6Version }}-linux-amd64/k6"
+        chmod +x k6
+        echo "##vso[task.prependpath]$(Pipeline.Workspace)/k6-bin"
+      displayName: 'Install k6 (no sudo required)'
+
+    - script: k6 version
+      displayName: 'Verify k6 installation'
+
+    - checkout: rtpPlatformQa
+      path: 'rtp-platform-qa'
+      displayName: 'Checkout rtp-platform-qa (${{ parameters.testsBranch }})'
+
+    - ${{ if eq(parameters.seedData, true) }}:
+        - script: |
+            set -e
+            cd $(Pipeline.Workspace)/rtp-platform-qa/performance-tests
+            # NOTE: create-activations.js writes always to the hardcoded path
+            # json-file/rtp-activator/activations.json regardless of $(appName);
+            # this mkdir matches it only while appsList == ['rtp-activator'].
+            mkdir -p json-file/$(appName)
+            k6 run "script/$SEED_SCRIPT" \
+              -e ENVIRONMENT="$ENVIRONMENT" \
+              -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
+              -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID="$DEBTOR_SERVICE_PROVIDER_CLIENT_ID" \
+              -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET="$DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET" \
+              -e TARGET_REQUESTS="$TARGET_REQUESTS"
+          displayName: 'Seed test data for $(appName)'
+          env:
+            # Passed as real environment variables (not interpolated into the
+            # script text) so that pipeline-parameter values can never be
+            # interpreted as shell syntax/commands, regardless of their content.
+            SEED_SCRIPT: ${{ parameters.seedScript }}
+            ENVIRONMENT: ${{ parameters.env }}
+            TARGET_REQUESTS: ${{ parameters.targetRequests }}
+            DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
+            DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
+            DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
+
+    - script: |
+        set -e
+        cd $(Pipeline.Workspace)/rtp-platform-qa/performance-tests
+        # K6_WEB_DASHBOARD_EXPORT produces a self-contained static HTML report
+        # (same interactive dashboard/charts as the local `--out web-dashboard`
+        # mode), instead of the live server at :5665 which is useless on a
+        # headless agent. Collected as a build artifact below.
+        # K6_WEB_DASHBOARD_PERIOD is lowered from the 10s default: k6 only
+        # includes graphs when the run lasts > 3x this period, and short
+        # smoke-test runs (a few seconds) would otherwise get an empty/skipped
+        # report ("test run was short, report generation was skipped").
+        K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=$(appName)-dashboard-report.html K6_WEB_DASHBOARD_PERIOD=500ms \
+        k6 run "tests/$(appName)/$TEST_SCRIPT" \
+          -e ENVIRONMENT="$ENVIRONMENT" \
+          -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
+          -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID="$DEBTOR_SERVICE_PROVIDER_CLIENT_ID" \
+          -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET="$DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET" \
+          -e SCENARIO="$SCENARIO" \
+          -e VU_COUNT_SET="$VU_COUNT_SET" \
+          -e ITERATIONS="$ITERATIONS" \
+          -e SLEEP_ITER="$SLEEP_ITER" \
+          -e RAMP_START_RATE="$RAMP_START_RATE" \
+          -e RAMP_PEAK_RATE="$RAMP_PEAK_RATE" \
+          -e RAMP_STEPS="$RAMP_STEPS" \
+          -e RAMP_STEP_DURATION="$RAMP_STEP_DURATION" \
+          -e SOAK_RATE="$SOAK_RATE" \
+          -e SOAK_DURATION="$SOAK_DURATION" \
+          -e SPIKE_BASE_RATE="$SPIKE_BASE_RATE" \
+          -e SPIKE_PEAK_RATE="$SPIKE_PEAK_RATE" \
+          -e SPIKE_RAMP_DURATION="$SPIKE_RAMP_DURATION" \
+          -e SPIKE_HOLD_DURATION="$SPIKE_HOLD_DURATION"
+      displayName: 'Run k6 test: $(appName)/${{ parameters.testScript }}'
+      env:
+        TEST_SCRIPT: ${{ parameters.testScript }}
+        ENVIRONMENT: ${{ parameters.env }}
+        SCENARIO: ${{ parameters.scenario }}
+        VU_COUNT_SET: ${{ parameters.vuCount }}
+        ITERATIONS: ${{ parameters.iterations }}
+        SLEEP_ITER: ${{ parameters.sleepIter }}
+        RAMP_START_RATE: ${{ parameters.rampStartRate }}
+        RAMP_PEAK_RATE: ${{ parameters.rampPeakRate }}
+        RAMP_STEPS: ${{ parameters.rampSteps }}
+        RAMP_STEP_DURATION: ${{ parameters.rampStepDuration }}
+        SOAK_RATE: ${{ parameters.soakRate }}
+        SOAK_DURATION: ${{ parameters.soakDuration }}
+        SPIKE_BASE_RATE: ${{ parameters.spikeBaseRate }}
+        SPIKE_PEAK_RATE: ${{ parameters.spikePeakRate }}
+        SPIKE_RAMP_DURATION: ${{ parameters.spikeRampDuration }}
+        SPIKE_HOLD_DURATION: ${{ parameters.spikeHoldDuration }}
+        DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
+        DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
+        DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
+
+    - script: |
+        mkdir -p "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)"
+        cp $(Pipeline.Workspace)/rtp-platform-qa/performance-tests/*-report.txt "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)/" 2>/dev/null || true
+        cp $(Pipeline.Workspace)/rtp-platform-qa/performance-tests/*-stress-analysis.json "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)/" 2>/dev/null || true
+        cp $(Pipeline.Workspace)/rtp-platform-qa/performance-tests/*-dashboard-report.html "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)/" 2>/dev/null || true
+      displayName: 'Collect k6 test artifacts'
+      condition: always()
+
+    - publish: '$(Build.ArtifactStagingDirectory)/k6-results'
+      displayName: 'Publish k6 test results'
+      artifact: 'k6TestResults_$(appName)'
+      condition: always()
