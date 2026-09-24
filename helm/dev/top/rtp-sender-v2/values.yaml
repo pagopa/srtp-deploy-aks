@@ -58,10 +58,19 @@ microservice-chart:
     ADX_CLUSTER_URL: "https://cstar-d-itn-platform.italynorth.kusto.windows.net"
     ADX_INGEST_CLUSTER_URL: "https://ingest-cstar-d-itn-platform.italynorth.kusto.windows.net"
 
+  initContainerEnvConfig:
+    TRUST_STORE_COUNTRY_LIST: "*"
+    TEST_TRUSTSTORE_PATH: "/mnt/oj/truststore.jks"
+    FORCE_TEST_TRUSTSTORE: "true"
+
   sidecars:
     - name: epc-proxy-sidecar
       image: ghcr.io/pagopa/rtp-sender-v2-sidecar:snapshot-main
       imagePullPolicy: Always
+      volumeMounts:
+        - name: eidas
+          mountPath: /mnt/eidas
+          readOnly: true
       ports:
         - containerPort: 3000
           name: proxy-http
@@ -130,6 +139,19 @@ microservice-chart:
     mounts:
       - shareName: cstar-d-itn-srtp-jks-file-share
         name: share-volume
+        readOnly: true
+      # Persistent cache for the eidas-trust-init initContainer (see
+      # helm/_global/rtp-sender-v2.yaml). Read-write, dedicated share so the
+      # DSS download/parsing/validation cache never mixes with the JKS
+      # certificate material on cstar-d-itn-srtp-jks-file-share.
+      # NOTE: the share itself must exist upstream (same storage account,
+      # cstarditnsrtpsa) before this is deployed, same as
+      # cstar-d-itn-srtp-jks-file-share already does.
+      - shareName: cstar-d-itn-srtp-eidas-cache-file-share
+        name: eidas-cache
+        readOnly: false
+      - shareName: cstar-d-itn-srtp-oj-file-share
+        name: oj-file-share
         readOnly: true
 
   # nodeSelector: {}

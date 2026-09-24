@@ -5,6 +5,9 @@ microservice-chart:
     volumeMounts:
       - mountPath: /mnt/jks/
         name: jks
+      - mountPath: /mnt/eidas
+        name: eidas
+        readOnly: true
 
   initContainers:
     - name: copy-jks
@@ -20,6 +23,37 @@ microservice-chart:
             mountPath: /mnt/share
           - name: jks
             mountPath: "/mnt/jks/"
+    - name: eidas-trust-init
+      image:
+        repository: ghcr.io/pagopa/rtp-sender-v2-eidas-trust-init
+        tag: snapshot-main
+        pullPolicy: Always
+      tmpVolumeMount:
+        create: true
+        mounts:
+          - name: eidas
+            mountPath: /out
+          # Persistent, shared Azure File volume backing the container's
+          # CACHE_DIR default (/var/cache/eidas-trust-bundle). Without this
+          # the DSS download/parsing/validation cache and the demo OJ
+          # keystore live on the initContainer's own ephemeral filesystem
+          # and are wiped on every pod (re)start/scale-up, defeating the
+          # online cache TTL entirely (see spikes/eidas-trust-bundle in
+          # rtp-sender-v2). Backed by a dedicated file share (see
+          # azureFile.mounts in the per-env values), not the JKS one, to
+          # keep the two concerns (certs vs. DSS cache) separate.
+          - name: eidas-cache
+            mountPath: /var/cache/eidas-trust-bundle
+          - name: oj-file-share
+            mountPath: /mnt/oj
+
+  # Applied to ALL initContainers because this chart configuration does not
+  # support per-container env overrides for init containers.
+  initContainerEnvConfig:
+    TRUST_STORE_COUNTRY_LIST: "*"
+
+  initContainerEnvSecret:
+    OJ_KEYSTORE_PASSWORD: "oj-keystore-password"
 
   deployment:
     create: true
@@ -85,6 +119,8 @@ microservice-chart:
         mountPath: /app/logs
       - name: jks
         mountPath: /mnt/jks/
+      - name: eidas
+        mountPath: /mnt/eidas
 
   envConfig:
     TZ: "Europe/Rome"
@@ -126,6 +162,7 @@ microservice-chart:
     READ_RTP_ACTIVATIONS_CLIENT_SECRET: "read-rtp-activations-client-secret"
     READ_RTP_ACTIVATIONS_CLIENT_ID: "read-rtp-activations-client-id"
     READ_RTP_PAYEES_CLIENT_ID: "read-rtp-payees-client-id"
+    OJ_KEYSTORE_PASSWORD: "oj-keystore-password"
     READ_RTP_PAYEES_CLIENT_SECRET: "read-rtp-payees-client-secret"
     REDIS_CONNECTION_URL: "srtp-redis-primary-connection-url"
 
