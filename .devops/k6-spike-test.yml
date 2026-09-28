@@ -26,6 +26,7 @@ parameters:
     default: activation
     values:
       - activation
+      - deactivation
       # Add more values here (+ a matching job block below) as new k6 test
       # scripts get wired into this pipeline.
 
@@ -115,6 +116,26 @@ stages:
               seedData: ${{ parameters.SEED_DATA }}
               seedScript: 'create-activations.js'
               targetRequests: ${{ parameters.TARGET_REQUESTS }}
+      - ${{ if eq(parameters.TEST_TARGET, 'deactivation') }}:
+          - template: templates/k6-tests-template.yml
+            parameters:
+              appsList: ['rtp-activator']
+              appCategory: 'deactivation'
+              env: ${{ parameters.ENV }}
+              agentPoolName: $(agentPoolName)
+              azureServiceConnection: $(azureServiceConnectionName)
+              keyVaultName: $(keyVaultName)
+              secretName: 'k6-performance-env'
+              testsBranch: ${{ parameters.TESTS_BRANCH }}
+              testScript: 'deactivation-finder.js'
+              scenario: 'spike_test'
+              spikeBaseRate: ${{ parameters.SPIKE_BASE_RATE }}
+              spikePeakRate: ${{ parameters.SPIKE_PEAK_RATE }}
+              spikeRampDuration: ${{ parameters.SPIKE_RAMP_DURATION }}
+              spikeHoldDuration: ${{ parameters.SPIKE_HOLD_DURATION }}
+              seedData: ${{ parameters.SEED_DATA }}
+              seedScript: 'create-activations.js'
+              targetRequests: ${{ parameters.TARGET_REQUESTS }}
       # Add more ${{ if eq(parameters.TEST_TARGET, '...') }} blocks here for
-      # future endpoints (deactivation, callback, ...), each pointing to its
+      # future endpoints (callback, ...), each pointing to its
       # own testScript/seedScript/appCategory.
