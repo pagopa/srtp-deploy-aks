@@ -1,0 +1,94 @@
+parameters:
+  - name: env
+    type: string
+  - name: agentPoolName
+    type: string
+  - name: azureServiceConnection
+    type: string
+  - name: keyVaultName
+    type: string
+  - name: secretName
+    type: string
+    default: 'k6-performance-env'
+  - name: testsBranch
+    type: string
+    default: 'main'
+  - name: scenario
+    type: string
+
+  # Scenario execution parameters
+  - name: vuCount
+    type: number
+    default: 10
+  - name: iterations
+    type: number
+    default: 30000
+  - name: sleepIter
+    type: number
+    default: 0
+  - name: rampStartRate
+    type: number
+    default: 10
+  - name: rampPeakRate
+    type: number
+    default: 5000
+  - name: rampSteps
+    type: number
+    default: 10
+  - name: rampStepDuration
+    type: string
+    default: '30s'
+  - name: soakRate
+    type: number
+    default: 20
+  - name: soakDuration
+    type: string
+    default: '5m'
+  - name: spikeBaseRate
+    type: number
+    default: 10
+  - name: spikePeakRate
+    type: number
+    default: 300
+  - name: spikeRampDuration
+    type: string
+    default: '10s'
+  - name: spikeHoldDuration
+    type: string
+    default: '30s'
+  - name: seedData
+    type: boolean
+    default: false
+  - name: targetRequests
+    type: number
+    default: 2000
+
+jobs:
+  - template: ../k6-tests-template.yml
+    parameters:
+      appsList: ['rtp-activator']
+      appCategory: 'activation'
+      env: ${{ parameters.env }}
+      agentPoolName: ${{ parameters.agentPoolName }}
+      azureServiceConnection: ${{ parameters.azureServiceConnection }}
+      keyVaultName: ${{ parameters.keyVaultName }}
+      secretName: ${{ parameters.secretName }}
+      testsBranch: ${{ parameters.testsBranch }}
+      testScript: 'activation-finder.js'
+      scenario: ${{ parameters.scenario }}
+      vuCount: ${{ parameters.vuCount }}
+      iterations: ${{ parameters.iterations }}
+      sleepIter: ${{ parameters.sleepIter }}
+      rampStartRate: ${{ parameters.rampStartRate }}
+      rampPeakRate: ${{ parameters.rampPeakRate }}
+      rampSteps: ${{ parameters.rampSteps }}
+      rampStepDuration: ${{ parameters.rampStepDuration }}
+      soakRate: ${{ parameters.soakRate }}
+      soakDuration: ${{ parameters.soakDuration }}
+      spikeBaseRate: ${{ parameters.spikeBaseRate }}
+      spikePeakRate: ${{ parameters.spikePeakRate }}
+      spikeRampDuration: ${{ parameters.spikeRampDuration }}
+      spikeHoldDuration: ${{ parameters.spikeHoldDuration }}
+      seedData: ${{ parameters.seedData }}
+      seedScript: 'create-activations.js'
+      targetRequests: ${{ parameters.targetRequests }}
