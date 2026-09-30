@@ -86,29 +86,31 @@ stages:
       - ${{ if eq(parameters.TEST_TARGET, 'activation') }}:
           - template: templates/targets/k6-activation-job.yml
             parameters:
-              env: ${{ parameters.ENV }}
-              agentPoolName: $(agentPoolName)
-              azureServiceConnection: $(azureServiceConnectionName)
-              keyVaultName: $(keyVaultName)
-              testsBranch: ${{ parameters.TESTS_BRANCH }}
-              scenario: 'soak_test'
-              soakRate: ${{ parameters.SOAK_RATE }}
-              soakDuration: ${{ parameters.SOAK_DURATION }}
-              seedData: ${{ parameters.SEED_DATA }}
-              targetRequests: ${{ parameters.TARGET_REQUESTS }}
+              params:
+                env: ${{ parameters.ENV }}
+                agentPoolName: $(agentPoolName)
+                azureServiceConnection: $(azureServiceConnectionName)
+                keyVaultName: $(keyVaultName)
+                testsBranch: ${{ parameters.TESTS_BRANCH }}
+                scenario: 'soak_test'
+                soakRate: ${{ parameters.SOAK_RATE }}
+                soakDuration: ${{ parameters.SOAK_DURATION }}
+                seedData: ${{ parameters.SEED_DATA }}
+                targetRequests: ${{ parameters.TARGET_REQUESTS }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'deactivation') }}:
           - template: templates/targets/k6-deactivation-job.yml
             parameters:
-              env: ${{ parameters.ENV }}
-              agentPoolName: $(agentPoolName)
-              azureServiceConnection: $(azureServiceConnectionName)
-              keyVaultName: $(keyVaultName)
-              testsBranch: ${{ parameters.TESTS_BRANCH }}
-              scenario: 'soak_test'
-              soakRate: ${{ parameters.SOAK_RATE }}
-              soakDuration: ${{ parameters.SOAK_DURATION }}
-              seedData: ${{ parameters.SEED_DATA }}
-              targetRequests: ${{ parameters.TARGET_REQUESTS }}
+              params:
+                env: ${{ parameters.ENV }}
+                agentPoolName: $(agentPoolName)
+                azureServiceConnection: $(azureServiceConnectionName)
+                keyVaultName: $(keyVaultName)
+                testsBranch: ${{ parameters.TESTS_BRANCH }}
+                scenario: 'soak_test'
+                soakRate: ${{ parameters.SOAK_RATE }}
+                soakDuration: ${{ parameters.SOAK_DURATION }}
+                seedData: ${{ parameters.SEED_DATA }}
+                targetRequests: ${{ parameters.TARGET_REQUESTS }}
       # Add more ${{ if eq(parameters.TEST_TARGET, '...') }} blocks here for
       # future endpoints (callback, ...), referencing their target template.
