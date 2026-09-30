@@ -27,6 +27,7 @@ parameters:
     default: activation
     values:
       - activation
+      - deactivation
       # Add more values here (+ a matching job block below) as new k6 test
       # scripts get wired into this pipeline.
 
@@ -88,28 +89,36 @@ stages:
   - stage: run_k6_custom_test
     displayName: '⚡ k6 custom test (${{ parameters.ENV }})'
     jobs:
-      # NOTE: appCategory/testScript/seedScript are resolved at compile-time
-      # (used to build job identifiers), so TEST_TARGET must be branched here
-      # with a literal per-value job block rather than a shared variable.
       - ${{ if eq(parameters.TEST_TARGET, 'activation') }}:
-          - template: templates/k6-tests-template.yml
+          - template: templates/targets/k6-activation-job.yml
             parameters:
-              appsList: ['rtp-activator']
-              appCategory: 'activation'
-              env: ${{ parameters.ENV }}
-              agentPoolName: $(agentPoolName)
-              azureServiceConnection: $(azureServiceConnectionName)
-              keyVaultName: $(keyVaultName)
-              secretName: 'k6-performance-env'
-              testsBranch: ${{ parameters.TESTS_BRANCH }}
-              testScript: 'activation-finder.js'
-              scenario: 'custom'
-              vuCount: ${{ parameters.VU_COUNT }}
-              iterations: ${{ parameters.ITERATIONS }}
-              sleepIter: ${{ parameters.SLEEP_ITER }}
-              seedData: ${{ parameters.SEED_DATA }}
-              seedScript: 'create-activations.js'
-              targetRequests: ${{ parameters.TARGET_REQUESTS }}
+              params:
+                env: ${{ parameters.ENV }}
+                agentPoolName: $(agentPoolName)
+                azureServiceConnection: $(azureServiceConnectionName)
+                keyVaultName: $(keyVaultName)
+                testsBranch: ${{ parameters.TESTS_BRANCH }}
+                scenario: 'custom'
+                vuCount: ${{ parameters.VU_COUNT }}
+                iterations: ${{ parameters.ITERATIONS }}
+                sleepIter: ${{ parameters.SLEEP_ITER }}
+                seedData: ${{ parameters.SEED_DATA }}
+                targetRequests: ${{ parameters.TARGET_REQUESTS }}
+
+      - ${{ if eq(parameters.TEST_TARGET, 'deactivation') }}:
+          - template: templates/targets/k6-deactivation-job.yml
+            parameters:
+              params:
+                env: ${{ parameters.ENV }}
+                agentPoolName: $(agentPoolName)
+                azureServiceConnection: $(azureServiceConnectionName)
+                keyVaultName: $(keyVaultName)
+                testsBranch: ${{ parameters.TESTS_BRANCH }}
+                scenario: 'custom'
+                vuCount: ${{ parameters.VU_COUNT }}
+                iterations: ${{ parameters.ITERATIONS }}
+                sleepIter: ${{ parameters.SLEEP_ITER }}
+                seedData: ${{ parameters.SEED_DATA }}
+                targetRequests: ${{ parameters.TARGET_REQUESTS }}
       # Add more ${{ if eq(parameters.TEST_TARGET, '...') }} blocks here for
-      # future endpoints (deactivation, callback, ...), each pointing to its
-      # own testScript/seedScript/appCategory.
+      # future endpoints (callback, ...), referencing their target template.
