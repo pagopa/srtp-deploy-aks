@@ -27,6 +27,7 @@ parameters:
     values:
       - activation
       - deactivation
+      - get_activation
       # Add more values here (+ a matching job block below) as new k6 test
       # scripts get wired into this pipeline.
 
@@ -112,6 +113,23 @@ stages:
 
       - ${{ if eq(parameters.TEST_TARGET, 'deactivation') }}:
           - template: templates/targets/k6-deactivation-job.yml
+            parameters:
+              params:
+                env: ${{ parameters.ENV }}
+                agentPoolName: $(agentPoolName)
+                azureServiceConnection: $(azureServiceConnectionName)
+                keyVaultName: $(keyVaultName)
+                testsBranch: ${{ parameters.TESTS_BRANCH }}
+                scenario: 'spike_test'
+                spikeBaseRate: ${{ parameters.SPIKE_BASE_RATE }}
+                spikePeakRate: ${{ parameters.SPIKE_PEAK_RATE }}
+                spikeRampDuration: ${{ parameters.SPIKE_RAMP_DURATION }}
+                spikeHoldDuration: ${{ parameters.SPIKE_HOLD_DURATION }}
+                seedData: ${{ parameters.SEED_DATA }}
+                targetRequests: ${{ parameters.TARGET_REQUESTS }}
+
+      - ${{ if eq(parameters.TEST_TARGET, 'get_activation') }}:
+          - template: templates/targets/k6-get-activation-job.yml
             parameters:
               params:
                 env: ${{ parameters.ENV }}
