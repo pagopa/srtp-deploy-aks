@@ -58,9 +58,6 @@ microservice-chart:
         authenticationRef:
           name: keda-evh-auth-gpd-rtp-events-sender
 
-  envSecret:
-    GPD_EVENTHUB_KEDA_USERNAME: "gpd-eventhub-keda-username"
-
   envConfig:
     GPD_EVENTHUB_BOOTSTRAP_SERVERS: "pagopa-u-itn-gps-rtp-integration-evh.servicebus.windows.net:9093"
     BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/activation/"
