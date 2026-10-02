@@ -117,8 +117,6 @@ microservice-chart:
     CLIENT_SECRET_POSTE: "client-secret-poste"
     JKS_TRUST_STORE_PATH: "jks-trust-store-path"
     JKS_TRUST_STORE_PASSWORD: "jks-trust-store-password"
-    GPD_EVENTHUB_CONNECTION_STRING: "gpd-eventhub-connection-string"
-    GPD_EVENTHUB_KEDA_USERNAME: "gpd-eventhub-keda-username"
 
 
   tolerations:

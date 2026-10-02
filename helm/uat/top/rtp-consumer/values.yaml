@@ -28,6 +28,8 @@ microservice-chart:
       cpu: "250m"
       memory: "512Mi"
 
+  terminationGracePeriodSeconds: 60
+
   autoscaling:
     enable: true
     minReplica: 3
@@ -59,6 +61,8 @@ microservice-chart:
           name: keda-evh-auth-gpd-rtp-events
 
   envConfig:
+    SERVER_SHUTDOWN: "graceful"
+    SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: "45s"
     GPD_EVENTHUB_BOOTSTRAP_SERVERS: "pagopa-u-itn-gps-rtp-integration-evh.servicebus.windows.net:9093"
     PROCESS_GPD_MESSAGE_BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp"
     PROCESS_GPD_MESSAGE_TIMEOUT: "PT30S"
