@@ -58,6 +58,7 @@ microservice-chart:
     PAYEES_REGISTRY_DATA_CACHE_TTL: "PT5M"
     MIL_AUTH_TOKEN_URL: "https://api-mcshared.uat.cstar.pagopa.it/auth-itn/realms/srtp/protocol/openid-connect/token"
     FEATURE_TOGGLE_ENABLE_LAST_PROCESSED_TIMESTAMP: "false"
+    QSEALC_VAULT_URL: "https://cstar-u-itn-srtp-kv.vault.azure.net/"
     IDEMPOTENCY_TTL: "P7D"
     ADX_CLUSTER_URL: "https://cstar-u-itn-platform.italynorth.kusto.windows.net"
     ADX_INGEST_CLUSTER_URL: "https://ingest-cstar-u-itn-platform.italynorth.kusto.windows.net"
@@ -91,6 +92,8 @@ microservice-chart:
           value: "15376371009"
         - name: PAGOPA_IBAN
           value: "IT96K999999999900SRTPPAGOPA"
+        - name: QSEALC_VAULT_URL
+          value: "https://cstar-u-itn-srtp-kv.vault.azure.net/"
         - name: CLIENT_CERTIFICATE
           valueFrom:
             secretKeyRef:

@@ -57,6 +57,7 @@ microservice-chart:
     IDEMPOTENCY_TTL: "PT5M"
     ADX_CLUSTER_URL: "https://cstar-d-itn-platform.italynorth.kusto.windows.net"
     ADX_INGEST_CLUSTER_URL: "https://ingest-cstar-d-itn-platform.italynorth.kusto.windows.net"
+    QSEALC_VAULT_URL: "https://cstar-d-itn-srtp-kv.vault.azure.net/"
 
   initContainerEnvConfig:
     TRUST_STORE_COUNTRY_LIST: "*"
@@ -89,6 +90,8 @@ microservice-chart:
           value: "15376371009"
         - name: PAGOPA_IBAN
           value: "IT96K999999999900SRTPPAGOPA"
+        - name: QSEALC_VAULT_URL
+          value: "https://cstar-d-itn-srtp-kv.vault.azure.net/"
         - name: CLIENT_CERTIFICATE
           valueFrom:
             secretKeyRef:
