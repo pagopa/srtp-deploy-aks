@@ -36,7 +36,6 @@ microservice-chart:
     maxReplica: 4
     pollingInterval: 10 # seconds
     cooldownPeriod: 60 # seconds
-    envSourceContainerName: "rtp-consumer-microservice-chart"
     triggerAuthentications:
       - name: keda-evh-auth-gpd-rtp-events
         secretTargetRef:
