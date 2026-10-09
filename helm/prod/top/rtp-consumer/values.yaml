@@ -28,17 +28,35 @@ microservice-chart:
       cpu: "500m"
       memory: "1Gi"
 
+  terminationGracePeriodSeconds: 60
+
   autoscaling:
     enable: true
     minReplica: 4
-    maxReplica: 6
+    maxReplica: 24
     pollingInterval: 30 # seconds
     cooldownPeriod: 300 # seconds
+    triggerAuthentications:
+      - name: keda-evh-auth-gpd-rtp-events
+        secretTargetRef:
+          - parameter: username
+            name: rtp-consumer-microservice-chart
+            key: gpd-eventhub-keda-username
+          - parameter: password
+            name: rtp-consumer-microservice-chart
+            key: gpd-eventhub-connection-string
     triggers:
-      - type: cpu
+      - type: kafka
         metadata:
-          type: Utilization
-          value: "60"
+          bootstrapServersFromEnv: "GPD_EVENTHUB_BOOTSTRAP_SERVERS"
+          consumerGroupFromEnv: "GPD_EVENTHUB_CONSUMER_GROUP"
+          topicFromEnv: "GPD_EVENTHUB_TOPIC"
+          lagThreshold: "100"
+          offsetResetPolicy: "earliest"
+          sasl: "plaintext"
+          tls: "enable"
+        authenticationRef:
+          name: keda-evh-auth-gpd-rtp-events
 
   podDisruptionBudget:
     create: true
@@ -49,6 +67,7 @@ microservice-chart:
     MONGODB_RETRY_INITIAL_BACKOFF: "PT0.2S"
     MONGODB_RETRY_MAX_BACKOFF: "PT5S"
     MONGODB_RETRY_JITTER: "0.5"
+    GPD_EVENTHUB_BOOTSTRAP_SERVERS: "pagopa-p-itn-gps-rtp-integration-evh.servicebus.windows.net:9093"
     PROCESS_GPD_MESSAGE_BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp"
     PROCESS_GPD_MESSAGE_TIMEOUT: "PT30S"
     PROCESS_GPD_MESSAGE_MAX_CONNECTIONS: "500"
