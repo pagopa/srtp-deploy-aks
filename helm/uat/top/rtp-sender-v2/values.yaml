@@ -62,22 +62,6 @@ microservice-chart:
     ADX_CLUSTER_URL: "https://cstar-u-itn-platform.italynorth.kusto.windows.net"
     ADX_INGEST_CLUSTER_URL: "https://ingest-cstar-u-itn-platform.italynorth.kusto.windows.net"
 
-  # Override the global list to keep JKS setup and disable eIDAS initialization in UAT.
-  initContainers:
-    - name: copy-jks
-      image:
-        repository: busybox
-        tag: 1.36.1@sha256:355b3a1bf5609da364166913878a8508d4ba30572d02020a97028c75477e24ff
-        pullPolicy: Always
-      command: ['sh', '-c', "mkdir -p /mnt/jks/ && cp /mnt/share/* /mnt/jks/"]
-      tmpVolumeMount:
-        create: true
-        mounts:
-          - name: share-volume
-            mountPath: /mnt/share
-          - name: jks
-            mountPath: "/mnt/jks/"
-
   initContainerEnvConfig:
     TRUST_STORE_COUNTRY_LIST: "*"
 
