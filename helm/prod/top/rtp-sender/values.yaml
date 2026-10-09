@@ -47,8 +47,8 @@ microservice-chart:
   envConfig:
     MONGODB_RETRY_MAX_ATTEMPTS: "3"
     MONGODB_RETRY_INITIAL_BACKOFF: "PT0.2S"
-    MONGODB_RETRY_MAX_BACKOFF: "PT10S"
-    MONGODB_RETRY_JITTER: "0"
+    MONGODB_RETRY_MAX_BACKOFF: "PT5S"
+    MONGODB_RETRY_JITTER: "0.5"
     BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/activation/"
     SP_BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/rtps/"
     PAYEES_REGISTRY_BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/payees/"
