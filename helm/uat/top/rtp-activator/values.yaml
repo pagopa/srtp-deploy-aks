@@ -40,6 +40,10 @@ microservice-chart:
 #          value: "60"
 
   envConfig:
+    MONGODB_RETRY_MAX_ATTEMPTS: "3"
+    MONGODB_RETRY_INITIAL_BACKOFF: "PT0.2S"
+    MONGODB_RETRY_MAX_BACKOFF: "PT5S"
+    MONGODB_RETRY_JITTER: "0.5"
     BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/activation/activations/"
     SP_BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/rtps/"
     EPC_MOCK_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/mock"
