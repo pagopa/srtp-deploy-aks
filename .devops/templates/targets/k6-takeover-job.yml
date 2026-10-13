@@ -10,7 +10,7 @@ jobs:
       appsList: ['rtp-activator']
       appCategory: 'takeover'
       testScript: 'takeover-finder.js'
-      seedScript: 'creative-activation-otp.js'
+      seedScript: 'create-activation-otp.js'
       # Extra variables read by the seed script (taken from the Key Vault secret).
       seedExtraEnvNames:
         - DEBTOR_SERVICE_PROVIDER_ID_FAKE
