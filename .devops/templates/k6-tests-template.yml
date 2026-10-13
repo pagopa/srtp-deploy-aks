@@ -224,7 +224,12 @@ jobs:
             # takeover OTP generator); empty for the other targets.
             EXTRA_ARGS=()
             for name in ${{ join(' ', parameters.seedExtraEnvNames) }}; do
-              EXTRA_ARGS+=(-e "$name=${!name}")
+              value="${!name}"
+              if [ -z "$value" ] || [[ "$value" == '$('* ]]; then
+                echo "##[error]Variable $name is not defined: add it to the Key Vault secret"
+                exit 1
+              fi
+              EXTRA_ARGS+=(-e "$name=$value")
             done
             k6 run "script/$SEED_SCRIPT" \
               -e ENVIRONMENT="$ENVIRONMENT" \
