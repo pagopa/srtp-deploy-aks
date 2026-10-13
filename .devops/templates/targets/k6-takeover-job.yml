@@ -11,9 +11,8 @@ jobs:
       appCategory: 'takeover'
       testScript: 'takeover-finder.js'
       seedScript: 'create-activation-otp.js'
-      # Extra variables read by the seed script (taken from the Key Vault secret).
+      # Extra variables passed to the seed script (keys of the Key Vault secret).
       seedExtraEnvNames:
-        - DEBTOR_SERVICE_PROVIDER_ID_FAKE
-        - DEBTOR_SERVICE_PROVIDER_ID_MOCK
-        - DEBTOR_SERVICE_PROVIDER_CLIENT_ID_FAKESP
-        - DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET_FAKESP
+        - DEBTOR_SERVICE_PROVIDER_B_ID
+        - DEBTOR_SERVICE_PROVIDER_B_CLIENT_ID
+        - DEBTOR_SERVICE_PROVIDER_B_CLIENT_SECRET
