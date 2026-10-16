@@ -111,6 +111,11 @@ parameters:
     type: string
     default: 'create-activations.js'
 
+  - name: seedExtraEnvNames
+    displayName: 'Extra pipeline variables (names) passed as -e to the seed script'
+    type: object
+    default: []
+
   - name: targetRequests
     displayName: 'Number of records to seed (only used when seedData=true)'
     type: number
@@ -215,12 +220,24 @@ jobs:
             # json-file/rtp-activator/activations.json regardless of $(appName);
             # this mkdir matches it only while appsList == ['rtp-activator'].
             mkdir -p json-file/$(appName)
+            # Optional extra variables required by some seed scripts (e.g. the
+            # takeover OTP generator); empty for the other targets.
+            EXTRA_ARGS=()
+            for name in ${{ join(' ', parameters.seedExtraEnvNames) }}; do
+              value="${!name}"
+              if [ -z "$value" ] || [[ "$value" == '$('* ]]; then
+                echo "##[error]Variable $name is not defined: add it to the Key Vault secret"
+                exit 1
+              fi
+              EXTRA_ARGS+=(-e "$name=$value")
+            done
             k6 run "script/$SEED_SCRIPT" \
               -e ENVIRONMENT="$ENVIRONMENT" \
               -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
               -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID="$DEBTOR_SERVICE_PROVIDER_CLIENT_ID" \
               -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET="$DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET" \
-              -e TARGET_REQUESTS="$TARGET_REQUESTS"
+              -e TARGET_REQUESTS="$TARGET_REQUESTS" \
+              "${EXTRA_ARGS[@]}"
           displayName: 'Seed test data for $(appName)'
           env:
             # Passed as real environment variables (not interpolated into the
@@ -232,6 +249,8 @@ jobs:
             DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
             DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
             DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
+            ${{ each name in parameters.seedExtraEnvNames }}:
+              ${{ name }}: $(${{ name }})
 
     - script: |
         set -e

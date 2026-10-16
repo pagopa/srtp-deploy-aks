@@ -29,6 +29,7 @@ parameters:
       - deactivation
       - get_activation
       - get_by_fiscal_code
+      - takeover
       # Add more values here (+ a matching job block below) as new k6 test
       # scripts get wired into this pipeline.
 
@@ -148,6 +149,23 @@ stages:
 
       - ${{ if eq(parameters.TEST_TARGET, 'get_by_fiscal_code') }}:
           - template: templates/targets/k6-get-by-fiscal-code-job.yml
+            parameters:
+              params:
+                env: ${{ parameters.ENV }}
+                agentPoolName: $(agentPoolName)
+                azureServiceConnection: $(azureServiceConnectionName)
+                keyVaultName: $(keyVaultName)
+                testsBranch: ${{ parameters.TESTS_BRANCH }}
+                scenario: 'spike_test'
+                spikeBaseRate: ${{ parameters.SPIKE_BASE_RATE }}
+                spikePeakRate: ${{ parameters.SPIKE_PEAK_RATE }}
+                spikeRampDuration: ${{ parameters.SPIKE_RAMP_DURATION }}
+                spikeHoldDuration: ${{ parameters.SPIKE_HOLD_DURATION }}
+                seedData: ${{ parameters.SEED_DATA }}
+                targetRequests: ${{ parameters.TARGET_REQUESTS }}
+
+      - ${{ if eq(parameters.TEST_TARGET, 'takeover') }}:
+          - template: templates/targets/k6-takeover-job.yml
             parameters:
               params:
                 env: ${{ parameters.ENV }}

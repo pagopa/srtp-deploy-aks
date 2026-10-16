@@ -1,0 +1,18 @@
+parameters:
+  - name: params
+    type: object
+    default: {}
+
+jobs:
+  - template: ../k6-tests-template.yml
+    parameters:
+      ${{ insert }}: ${{ parameters.params }}
+      appsList: ['rtp-activator']
+      appCategory: 'takeover'
+      testScript: 'takeover-finder.js'
+      seedScript: 'create-activation-otp.js'
+      # Extra variables passed to the seed script (keys of the Key Vault secret).
+      seedExtraEnvNames:
+        - DEBTOR_SERVICE_PROVIDER_ID_FAKE
+        - DEBTOR_SERVICE_PROVIDER_CLIENT_ID_FAKESP
+        - DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET_FAKESP
