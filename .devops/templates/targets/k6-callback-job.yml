@@ -1,0 +1,19 @@
+parameters:
+  - name: params
+    type: object
+    default: {}
+
+jobs:
+  - template: ../k6-tests-template.yml
+    parameters:
+      ${{ insert }}: ${{ parameters.params }}
+      appsList: ['rtp-sender']
+      appCategory: 'callback'
+      testScript: 'callback-finder.js'
+      seedScript: 'create-rtp.js'
+      # Extra variables passed to the seed script (keys of the Key Vault secret).
+      seedExtraEnvNames:
+        - CREDITOR_SERVICE_PROVIDER_CLIENT_ID
+        - CREDITOR_SERVICE_PROVIDER_CLIENT_SECRET
+        - DEBTOR_FISCAL_CODE
+      fetchClientCert: true
