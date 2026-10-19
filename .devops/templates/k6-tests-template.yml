@@ -145,14 +145,14 @@ parameters:
     default: false
 
   - name: clientCertSecret
-    displayName: 'Client certificate secret (base64 or PEM)'
+    displayName: 'Client certificate secret (base64)'
     type: string
-    default: 'client-certificate'
+    default: 'cb-certificate'
 
   - name: clientKeySecret
-    displayName: 'Private key secret (base64 or PEM)'
+    displayName: 'Private key secret (base64)'
     type: string
-    default: 'client-secret-cbi'
+    default: 'cb-private-key'
 
 jobs:
 - job: k6_${{ parameters.appCategory }}
@@ -239,37 +239,35 @@ jobs:
               set -e
               CERT_DIR="$(Pipeline.Workspace)/rtp-platform-qa/performance-tests/utils/certificates"
               mkdir -p "$CERT_DIR"
-              echo "🔐 Fetching mTLS client certificate and private key..."
+              echo "🔐 Fetching certificate and key from Key Vault..."
 
-              cert_val=$(az keyvault secret show \
+              # Fetch base64-encoded secrets
+              cert_b64=$(az keyvault secret show \
                 --name "${{ parameters.clientCertSecret }}" \
                 --vault-name "${{ parameters.keyVaultName }}" \
                 --query 'value' -o tsv)
 
-              key_val=$(az keyvault secret show \
+              key_b64=$(az keyvault secret show \
                 --name "${{ parameters.clientKeySecret }}" \
                 --vault-name "${{ parameters.keyVaultName }}" \
                 --query 'value' -o tsv)
 
-              if [ -z "$cert_val" ] || [ -z "$key_val" ]; then
-                echo "##[error]Certificate or private key secret is empty or could not be fetched"
+              # Validate secrets
+              if [ -z "$cert_b64" ]; then
+                echo "❌ Error: Certificate secret '${{ parameters.clientCertSecret }}' is empty or could not be fetched from Key Vault '${{ parameters.keyVaultName }}'."
+                exit 1
+              fi
+              if [ -z "$key_b64" ]; then
+                echo "❌ Error: Key secret '${{ parameters.clientKeySecret }}' is empty or could not be fetched from Key Vault '${{ parameters.keyVaultName }}'."
                 exit 1
               fi
 
-              if [[ "$cert_val" =~ ^-----BEGIN ]]; then
-                echo "$cert_val" > "$CERT_DIR/cert.pem"
-              else
-                echo "$cert_val" | base64 -d > "$CERT_DIR/cert.pem"
-              fi
-
-              if [[ "$key_val" =~ ^-----BEGIN ]]; then
-                echo "$key_val" > "$CERT_DIR/key-unencrypted.pem"
-              else
-                echo "$key_val" | base64 -d > "$CERT_DIR/key-unencrypted.pem"
-              fi
+              # Decode and write to files
+              echo "$cert_b64" | base64 -d > "$CERT_DIR/cert.pem"
+              echo "$key_b64"  | base64 -d > "$CERT_DIR/key-unencrypted.pem"
 
               chmod 600 "$CERT_DIR/key-unencrypted.pem"
-              echo "✅ Certificates written under $CERT_DIR"
+              echo "✅ Certificate and key written under $CERT_DIR"
 
     - ${{ if eq(parameters.seedData, true) }}:
         - script: |
