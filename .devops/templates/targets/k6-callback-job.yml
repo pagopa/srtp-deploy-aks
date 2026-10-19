@@ -17,3 +17,5 @@ jobs:
         - CREDITOR_SERVICE_PROVIDER_CLIENT_SECRET
         - DEBTOR_FISCAL_CODE
       fetchClientCert: true
+      clientCertSecret: 'client-certificate'
+      clientKeySecret: 'client-secret-cbi'

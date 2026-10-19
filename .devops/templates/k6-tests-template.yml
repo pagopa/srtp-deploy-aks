@@ -145,14 +145,14 @@ parameters:
     default: false
 
   - name: clientCertSecret
-    displayName: 'Client certificate secret (base64)'
+    displayName: 'Client certificate secret (base64 or PEM)'
     type: string
-    default: 'cb-certificate'
+    default: 'client-certificate'
 
   - name: clientKeySecret
-    displayName: 'Private key secret (base64)'
+    displayName: 'Private key secret (base64 or PEM)'
     type: string
-    default: 'cb-private-key'
+    default: 'client-secret-cbi'
 
 jobs:
 - job: k6_${{ parameters.appCategory }}
