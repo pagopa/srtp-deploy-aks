@@ -64,6 +64,10 @@ microservice-chart:
     IDEMPOTENCY_TTL: "P7D"
     ADX_CLUSTER_URL: "https://cstar-u-itn-platform.italynorth.kusto.windows.net"
     ADX_INGEST_CLUSTER_URL: "https://ingest-cstar-u-itn-platform.italynorth.kusto.windows.net"
+    APPLICATIONINSIGHTS_EXPORTER_MAX_CONNECTIONS: "50"
+    APPLICATIONINSIGHTS_EXPORTER_MAX_IDLE_TIME: "PT15S"
+    APPLICATIONINSIGHTS_EXPORTER_MAX_LIFE_TIME: "PT55S"
+    APPLICATIONINSIGHTS_EXPORTER_EVICT_IN_BACKGROUND: "PT10S"
 
   keyvault:
     name: "cstar-u-itn-srtp-kv"
