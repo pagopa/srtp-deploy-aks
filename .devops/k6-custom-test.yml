@@ -186,7 +186,7 @@ stages:
                 vuCount: ${{ parameters.VU_COUNT }}
                 iterations: ${{ parameters.ITERATIONS }}
                 sleepIter: ${{ parameters.SLEEP_ITER }}
-                seedData: ${{ parameters.SEED_DATA }}
+                seedData: true
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
       # Add more ${{ if eq(parameters.TEST_TARGET, '...') }} blocks here for
       # future endpoints, referencing their target template.
