@@ -139,6 +139,21 @@ parameters:
     displayName: 'Azure Subscription'
     type: string
 
+  - name: fetchClientCert
+    displayName: 'Fetch client mTLS certificate and key from Key Vault'
+    type: boolean
+    default: false
+
+  - name: clientCertSecret
+    displayName: 'Client certificate secret (base64)'
+    type: string
+    default: 'cb-certificate'
+
+  - name: clientKeySecret
+    displayName: 'Private key secret (base64)'
+    type: string
+    default: 'cb-private-key'
+
 jobs:
 - job: k6_${{ parameters.appCategory }}
   displayName: '⚡ k6 ${{ parameters.appCategory }}'
@@ -212,6 +227,48 @@ jobs:
       path: 'rtp-platform-qa'
       displayName: 'Checkout rtp-platform-qa (${{ parameters.testsBranch }})'
 
+    - ${{ if eq(parameters.fetchClientCert, true) }}:
+        - task: AzureCLI@2
+          name: fetchCertAndKey
+          displayName: 'Fetch mTLS certificate and key from Key Vault'
+          inputs:
+            azureSubscription: '${{ parameters.azureServiceConnection }}'
+            scriptType: 'bash'
+            scriptLocation: 'inlineScript'
+            inlineScript: |
+              set -e
+              CERT_DIR="$(Pipeline.Workspace)/rtp-platform-qa/performance-tests/utils/certificates"
+              mkdir -p "$CERT_DIR"
+              echo "🔐 Fetching certificate and key from Key Vault..."
+
+              # Fetch base64-encoded secrets
+              cert_b64=$(az keyvault secret show \
+                --name "${{ parameters.clientCertSecret }}" \
+                --vault-name "${{ parameters.keyVaultName }}" \
+                --query 'value' -o tsv)
+
+              key_b64=$(az keyvault secret show \
+                --name "${{ parameters.clientKeySecret }}" \
+                --vault-name "${{ parameters.keyVaultName }}" \
+                --query 'value' -o tsv)
+
+              # Validate secrets
+              if [ -z "$cert_b64" ]; then
+                echo "❌ Error: Certificate secret '${{ parameters.clientCertSecret }}' is empty or could not be fetched from Key Vault '${{ parameters.keyVaultName }}'."
+                exit 1
+              fi
+              if [ -z "$key_b64" ]; then
+                echo "❌ Error: Key secret '${{ parameters.clientKeySecret }}' is empty or could not be fetched from Key Vault '${{ parameters.keyVaultName }}'."
+                exit 1
+              fi
+
+              # Decode and write to files
+              echo "$cert_b64" | base64 -d > "$CERT_DIR/cert.pem"
+              echo "$key_b64"  | base64 -d > "$CERT_DIR/key-unencrypted.pem"
+
+              chmod 600 "$CERT_DIR/key-unencrypted.pem"
+              echo "✅ Certificate and key written under $CERT_DIR"
+
     - ${{ if eq(parameters.seedData, true) }}:
         - script: |
             set -e
@@ -238,6 +295,12 @@ jobs:
               -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET="$DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET" \
               -e TARGET_REQUESTS="$TARGET_REQUESTS" \
               "${EXTRA_ARGS[@]}"
+
+            # Ensure resourceIds.json is reachable in script/ if created in json-file/
+            if [ -f "json-file/$(appName)/resourceIds.json" ]; then
+              mkdir -p script
+              cp "json-file/$(appName)/resourceIds.json" script/resourceIds.json
+            fi
           displayName: 'Seed test data for $(appName)'
           env:
             # Passed as real environment variables (not interpolated into the
