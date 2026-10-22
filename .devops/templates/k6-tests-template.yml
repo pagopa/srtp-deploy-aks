@@ -335,6 +335,7 @@ jobs:
           RTP_SP_ID_VAL="$DEBTOR_SERVICE_PROVIDER_ID"
         fi
 
+        set +e
         K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=$(appName)-dashboard-report.html K6_WEB_DASHBOARD_PERIOD=500ms \
         k6 run "tests/$(appName)/$TEST_SCRIPT" \
           -e ENVIRONMENT="$ENVIRONMENT" \
@@ -356,6 +357,15 @@ jobs:
           -e SPIKE_PEAK_RATE="$SPIKE_PEAK_RATE" \
           -e SPIKE_RAMP_DURATION="$SPIKE_RAMP_DURATION" \
           -e SPIKE_HOLD_DURATION="$SPIKE_HOLD_DURATION"
+        K6_EXIT=$?
+        set -e
+
+        if [ $K6_EXIT -eq 108 ]; then
+          echo "##[warning] k6 test was aborted early (code 108): resources/data were exhausted before scenario completion."
+        elif [ $K6_EXIT -ne 0 ]; then
+          echo "##[error] k6 test failed with exit code $K6_EXIT."
+          exit $K6_EXIT
+        fi
       displayName: 'Run k6 test: $(appName)/${{ parameters.testScript }}'
       env:
         TEST_SCRIPT: ${{ parameters.testScript }}
