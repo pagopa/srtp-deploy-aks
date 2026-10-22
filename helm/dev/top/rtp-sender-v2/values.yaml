@@ -68,8 +68,6 @@ microservice-chart:
       env:
         - name: PORT
           value: "3000"
-        - name: LOG_LEVEL
-          value: "debug"
         - name: EPC_BASE_URL
           value: "https://api-rtp.dev.cstar.pagopa.it/rtp/mock"
         - name: EPC_TIMEOUT_MS
