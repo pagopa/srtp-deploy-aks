@@ -56,12 +56,12 @@ parameters:
     default: '15s'
 
   - name: SEED_DATA
-    displayName: Seed activation data before running the test
+    displayName: Seed data before running the test
     type: boolean
     default: false
 
   - name: TARGET_REQUESTS
-    displayName: Number of activations to seed (only used when SEED_DATA=true)
+    displayName: Number of records to seed
     type: string
     default: '2000'
 

@@ -102,7 +102,7 @@ parameters:
     default: '30s'
 
   - name: seedData
-    displayName: 'Seed activation data before running the test'
+    displayName: 'Seed test data before running the test'
     type: boolean
     default: false
 
