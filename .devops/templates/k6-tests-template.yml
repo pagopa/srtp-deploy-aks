@@ -116,6 +116,16 @@ parameters:
     type: object
     default: []
 
+  - name: testExtraEnvNames
+    displayName: 'Extra pipeline variables (names) passed as -e to the test script'
+    type: object
+    default: []
+
+  - name: extraEnv
+    displayName: 'Extra plain key/value pairs passed as -e to both the seed and the test scripts'
+    type: object
+    default: {}
+
   - name: targetRequests
     displayName: 'Number of records to seed (only used when seedData=true)'
     type: number
@@ -288,6 +298,14 @@ jobs:
               fi
               EXTRA_ARGS+=(-e "$name=$value")
             done
+            # extraEnv entries are exported with a K6_EXTRA_ prefix (see env
+            # below) so they can be enumerated here without knowing their keys.
+            for prefixed in $(compgen -e | grep '^K6_EXTRA_' || true); do
+              value="${!prefixed}"
+              if [ -n "$value" ]; then
+                EXTRA_ARGS+=(-e "${prefixed#K6_EXTRA_}=$value")
+              fi
+            done
             k6 run "script/$SEED_SCRIPT" \
               -e ENVIRONMENT="$ENVIRONMENT" \
               -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
@@ -314,10 +332,32 @@ jobs:
             DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
             ${{ each name in parameters.seedExtraEnvNames }}:
               ${{ name }}: $(${{ name }})
+            ${{ each pair in parameters.extraEnv }}:
+              K6_EXTRA_${{ pair.key }}: ${{ pair.value }}
 
     - script: |
         set -e
         cd $(Pipeline.Workspace)/rtp-platform-qa/performance-tests
+        # Optional extra variables required by some test scripts (e.g. the
+        # RTP consumer credentials and OPERATION/STATUS/PSP_TAX_CODE of the
+        # GPD message test); empty for the other targets.
+        EXTRA_ARGS=()
+        for name in ${{ join(' ', parameters.testExtraEnvNames) }}; do
+          value="${!name}"
+          if [ -z "$value" ] || [[ "$value" == '$('* ]]; then
+            echo "##[error]Variable $name is not defined: add it to the Key Vault secret"
+            exit 1
+          fi
+          EXTRA_ARGS+=(-e "$name=$value")
+        done
+        # extraEnv entries are exported with a K6_EXTRA_ prefix (see env
+        # below) so they can be enumerated here without knowing their keys.
+        for prefixed in $(compgen -e | grep '^K6_EXTRA_' || true); do
+          value="${!prefixed}"
+          if [ -n "$value" ]; then
+            EXTRA_ARGS+=(-e "${prefixed#K6_EXTRA_}=$value")
+          fi
+        done
         # K6_WEB_DASHBOARD_EXPORT produces a self-contained static HTML report
         # (same interactive dashboard/charts as the local `--out web-dashboard`
         # mode), instead of the live server at :5665 which is useless on a
@@ -345,7 +385,8 @@ jobs:
           -e SPIKE_BASE_RATE="$SPIKE_BASE_RATE" \
           -e SPIKE_PEAK_RATE="$SPIKE_PEAK_RATE" \
           -e SPIKE_RAMP_DURATION="$SPIKE_RAMP_DURATION" \
-          -e SPIKE_HOLD_DURATION="$SPIKE_HOLD_DURATION"
+          -e SPIKE_HOLD_DURATION="$SPIKE_HOLD_DURATION" \
+          "${EXTRA_ARGS[@]}"
       displayName: 'Run k6 test: $(appName)/${{ parameters.testScript }}'
       env:
         TEST_SCRIPT: ${{ parameters.testScript }}
@@ -367,6 +408,10 @@ jobs:
         DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
         DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
         DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
+        ${{ each name in parameters.testExtraEnvNames }}:
+          ${{ name }}: $(${{ name }})
+        ${{ each pair in parameters.extraEnv }}:
+          K6_EXTRA_${{ pair.key }}: ${{ pair.value }}
 
     - script: |
         mkdir -p "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)"
