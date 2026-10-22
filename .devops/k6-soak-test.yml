@@ -56,7 +56,7 @@ parameters:
     default: '2000'
 
   - name: GPD_OPERATION
-    displayName: GPD message operation (only used when TEST_TARGET=gpd_message)
+    displayName: GPD message operation
     type: string
     default: CREATE
     values:
@@ -65,7 +65,7 @@ parameters:
       - DELETE
 
   - name: GPD_STATUS
-    displayName: GPD message status (only used when TEST_TARGET=gpd_message)
+    displayName: GPD message status
     type: string
     default: VALID
     values:
@@ -76,7 +76,7 @@ parameters:
       - DRAFT
 
   - name: GPD_PSP_TAX_CODE
-    displayName: GPD message PSP tax code, required for UPDATE PAID ('none' = not set; only used when TEST_TARGET=gpd_message)
+    displayName: GPD message PSP tax code, required for UPDATE PAID
     type: string
     default: none
 
