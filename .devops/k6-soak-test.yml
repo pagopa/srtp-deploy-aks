@@ -55,6 +55,11 @@ parameters:
     type: string
     default: '2000'
 
+  - name: BATCH_SIZE
+    displayName: Seed requests per batch ('default' = seed script default)
+    type: string
+    default: default
+
   - name: GPD_OPERATION
     displayName: GPD message operation
     type: string
@@ -127,6 +132,7 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: ${{ parameters.SEED_DATA }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'deactivation') }}:
           - template: templates/targets/k6-deactivation-job.yml
@@ -142,6 +148,7 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: ${{ parameters.SEED_DATA }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'get_activation') }}:
           - template: templates/targets/k6-get-activation-job.yml
@@ -157,6 +164,7 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: ${{ parameters.SEED_DATA }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'get_by_fiscal_code') }}:
           - template: templates/targets/k6-get-by-fiscal-code-job.yml
@@ -172,6 +180,7 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: ${{ parameters.SEED_DATA }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'takeover') }}:
           - template: templates/targets/k6-takeover-job.yml
@@ -187,6 +196,7 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: ${{ parameters.SEED_DATA }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'callback') }}:
           - template: templates/targets/k6-callback-job.yml
@@ -202,6 +212,7 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: true
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'gpd_message') }}:
           - template: templates/targets/k6-gpd-message-job.yml
@@ -220,6 +231,7 @@ stages:
                 # seed script, so seeding is forced for them.
                 seedData: ${{ or(parameters.SEED_DATA, not(and(in(parameters.GPD_OPERATION, 'CREATE', 'UPDATE'), eq(parameters.GPD_STATUS, 'VALID')))) }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
                 # Passed to both the seed and the test scripts, so the messages
                 # are created and then updated with the same PSP tax code.
                 extraEnv:

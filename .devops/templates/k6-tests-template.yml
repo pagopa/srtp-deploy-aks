@@ -131,6 +131,11 @@ parameters:
     type: number
     default: 2000
 
+  - name: seedBatchSize
+    displayName: "Seed script BATCH_SIZE ('default' = seed script default)"
+    type: string
+    default: 'default'
+
   - name: k6Version
     displayName: 'k6 version'
     type: string
@@ -306,6 +311,15 @@ jobs:
                 EXTRA_ARGS+=(-e "${prefixed#K6_EXTRA_}=$value")
               fi
             done
+            # BATCH_SIZE override, passed only when set so that each seed script
+            # otherwise keeps its own default.
+            if [ "$SEED_BATCH_SIZE" != "default" ]; then
+              if ! [[ "$SEED_BATCH_SIZE" =~ ^[1-9][0-9]*$ ]]; then
+                echo "##[error]BATCH_SIZE must be a positive integer or 'default', got: $SEED_BATCH_SIZE"
+                exit 1
+              fi
+              EXTRA_ARGS+=(-e "BATCH_SIZE=$SEED_BATCH_SIZE")
+            fi
             k6 run "script/$SEED_SCRIPT" \
               -e ENVIRONMENT="$ENVIRONMENT" \
               -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
@@ -327,6 +341,7 @@ jobs:
             SEED_SCRIPT: ${{ parameters.seedScript }}
             ENVIRONMENT: ${{ parameters.env }}
             TARGET_REQUESTS: ${{ parameters.targetRequests }}
+            SEED_BATCH_SIZE: ${{ parameters.seedBatchSize }}
             DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
             DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
             DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
