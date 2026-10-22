@@ -80,6 +80,8 @@ microservice-chart:
           value: "3"
         - name: RETRY_BASE_DELAY_MS
           value: "1000"
+        - name: TRUST_STORE_PEM_PATH
+          value: /mnt/share/trust-store.pem
         - name: PAGOPA_FISCAL_CODE
           value: "15376371009"
         - name: PAGOPA_IBAN
@@ -89,12 +91,26 @@ microservice-chart:
             secretKeyRef:
               name: rtp-sender-v2-microservice-chart
               key: client-certificate
+        - name: QSEALC_CERTIFICATE
+          valueFrom:
+            secretKeyRef:
+              name: rtp-sender-v2-microservice-chart
+              key: qsealc-signing-certificate
+        - name: QSEALC_CERTIFICATE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rtp-sender-v2-microservice-chart
+              key: qsealc-signing-certificate-password
         - name: APPLICATIONINSIGHTS_CONNECTION_STRING
           valueFrom:
             secretKeyRef:
               name: rtp-sender-v2-microservice-chart
               key: appinsights-connection-string
 
+      volumeMounts:
+        - name: share-volume
+          mountPath: /mnt/share
+          readOnly: true
       resources:
         requests:
           cpu: "100m"
@@ -124,6 +140,12 @@ microservice-chart:
         capabilities:
           drop:
             - all
+
+  providedVolumeMount:
+    create: true
+    envSecret:
+      QSEALC_CERTIFICATE: "qsealc-signing-certificate"
+      QSEALC_CERTIFICATE_PASSWORD: "qsealc-signing-certificate-password"
 
   keyvault:
     name: "cstar-u-itn-srtp-kv"
