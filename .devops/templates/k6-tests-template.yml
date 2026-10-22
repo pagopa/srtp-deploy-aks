@@ -136,6 +136,11 @@ parameters:
     type: string
     default: 'default'
 
+  - name: seedCooldown
+    displayName: 'Pause in seconds between seeding and the test (0 = no pause)'
+    type: string
+    default: '0'
+
   - name: k6Version
     displayName: 'k6 version'
     type: string
@@ -349,6 +354,21 @@ jobs:
               ${{ name }}: $(${{ name }})
             ${{ each pair in parameters.extraEnv }}:
               K6_EXTRA_${{ pair.key }}: ${{ pair.value }}
+
+        # Lets the service settle (connection pools, queues, autoscaling) after
+        # the seed burst, so it does not skew the first part of the test.
+        - ${{ if ne(parameters.seedCooldown, '0') }}:
+            - script: |
+                set -e
+                if ! [[ "$SEED_COOLDOWN" =~ ^[1-9][0-9]*$ ]]; then
+                  echo "##[error]SEED_COOLDOWN must be a positive integer number of seconds or 0, got: $SEED_COOLDOWN"
+                  exit 1
+                fi
+                echo "Waiting ${SEED_COOLDOWN}s before running the test..."
+                sleep "$SEED_COOLDOWN"
+              displayName: 'Cooldown after seed (${{ parameters.seedCooldown }}s)'
+              env:
+                SEED_COOLDOWN: ${{ parameters.seedCooldown }}
 
     - script: |
         set -e
