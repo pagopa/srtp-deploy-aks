@@ -238,7 +238,7 @@ stages:
                 seedBatchSize: ${{ parameters.BATCH_SIZE }}
                 seedCooldown: ${{ parameters.SEED_COOLDOWN }}
 
-      - ${{ if eq(parameters.TEST_TARGET, 'callback-cancel') }}:
+      - ${{ if or(eq(parameters.TEST_TARGET, 'callback_cancel'), eq(parameters.TEST_TARGET, 'callback-cancel')) }}:
           - template: templates/targets/k6-callback-cancel-job.yml
             parameters:
               params:
