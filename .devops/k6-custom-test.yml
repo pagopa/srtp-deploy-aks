@@ -57,7 +57,7 @@ parameters:
     default: false
 
   - name: TARGET_REQUESTS
-    displayName: Number of records to seed
+    displayName: Number of records to seed (only used when SEED_DATA=true)
     type: string
     default: '2000'
 
