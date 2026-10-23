@@ -4,8 +4,6 @@ parameters:
     default: {}
 
 jobs:
-  # UPDATE PAID requires the PSP tax code (the same one used by the seed script
-  # to create the messages): fail fast instead of running a test doomed to fail.
   - ${{ if and(eq(parameters.params.extraEnv.OPERATION, 'UPDATE'), eq(parameters.params.extraEnv.STATUS, 'PAID'), eq(coalesce(parameters.params.extraEnv.PSP_TAX_CODE, ''), '')) }}:
       - job: k6_gpd_message
         displayName: '⚡ k6 gpd_message'
@@ -24,11 +22,7 @@ jobs:
           appCategory: 'gpd_message'
           testScript: 'gpd-message-finder.js'
           seedScript: 'create-gpd-message.js'
-          # Operations on existing messages (anything but CREATE/UPDATE with
-          # status VALID) use each seeded operation ID once and cannot reuse
-          # it, so the seed must cover every request of the load profile.
           seedCoversLoad: ${{ not(and(in(parameters.params.extraEnv.OPERATION, 'CREATE', 'UPDATE'), eq(parameters.params.extraEnv.STATUS, 'VALID'))) }}
-          # Extra variables passed to the seed and test scripts (keys of the Key Vault secret).
           seedExtraEnvNames:
             - RTP_CONSUMER_CLIENT_ID
             - RTP_CONSUMER_CLIENT_SECRET

@@ -313,16 +313,12 @@ jobs:
               fi
               EXTRA_ARGS+=(-e "$name=$value")
             done
-            # extraEnv entries are exported with a K6_EXTRA_ prefix (see env
-            # below) so they can be enumerated here without knowing their keys.
             for prefixed in $(compgen -e | grep '^K6_EXTRA_' || true); do
               value="${!prefixed}"
               if [ -n "$value" ]; then
                 EXTRA_ARGS+=(-e "${prefixed#K6_EXTRA_}=$value")
               fi
             done
-            # BATCH_SIZE override, passed only when set so that each seed script
-            # otherwise keeps its own default.
             if [ "$SEED_BATCH_SIZE" != "default" ]; then
               if ! [[ "$SEED_BATCH_SIZE" =~ ^[1-9][0-9]*$ ]]; then
                 echo "##[error]BATCH_SIZE must be a positive integer or 'default', got: $SEED_BATCH_SIZE"
@@ -330,12 +326,6 @@ jobs:
               fi
               EXTRA_ARGS+=(-e "BATCH_SIZE=$SEED_BATCH_SIZE")
             fi
-            # Tests that consume one seeded record per request (and abort when
-            # they run out) need at least as many records as the requests of
-            # the arrival-rate scenario: estimate them with the same stages as
-            # buildStressTestScenario/buildSoakTestScenario/buildSpikeTestScenario
-            # in rtp-platform-qa utils.js (k6 interpolates the rate linearly
-            # within each stage), plus a 10% margin.
             if [[ "$SEED_COVERS_LOAD" == [Tt]rue ]]; then
               case "$SCENARIO" in
                 stress_test|soak_test|spike_test)
@@ -345,7 +335,6 @@ jobs:
                     -v soakRate="$SOAK_RATE" -v soakDuration="$SOAK_DURATION" \
                     -v spikeBase="$SPIKE_BASE_RATE" -v spikePeak="$SPIKE_PEAK_RATE" \
                     -v spikeRamp="$SPIKE_RAMP_DURATION" -v spikeHold="$SPIKE_HOLD_DURATION" '
-                    # k6 duration string (e.g. 20s, 5m, 1h30m, 500ms) to seconds.
                     function secs(d,   total, tok, unit) {
                       while (match(d, /^[0-9.]+(ms|h|m|s)/)) {
                         tok = substr(d, 1, RLENGTH); d = substr(d, RLENGTH + 1)
@@ -367,7 +356,6 @@ jobs:
                       } else if (scenario == "soak_test") {
                         n = soakRate * secs(soakDuration)
                       } else {
-                        # SPIKE_BASE_HOLD_DURATION is not passed to the test: 10s default.
                         n = stage(spikeBase, spikeBase, "10s") + 2 * stage(spikeBase, spikePeak, spikeRamp) + stage(spikePeak, spikePeak, spikeHold)
                       }
                       printf "%d\n", n * 1.1 + 1
@@ -425,8 +413,6 @@ jobs:
             ${{ each pair in parameters.extraEnv }}:
               K6_EXTRA_${{ pair.key }}: ${{ pair.value }}
 
-        # Lets the service settle (connection pools, queues, autoscaling) after
-        # the seed burst, so it does not skew the first part of the test.
         - ${{ if ne(parameters.seedCooldown, '0') }}:
             - script: |
                 set -e
@@ -443,9 +429,6 @@ jobs:
     - script: |
         set -e
         cd $(Pipeline.Workspace)/rtp-platform-qa/performance-tests
-        # Optional extra variables required by some test scripts (e.g. the
-        # RTP consumer credentials and OPERATION/STATUS/PSP_TAX_CODE of the
-        # GPD message test); empty for the other targets.
         EXTRA_ARGS=()
         for name in ${{ join(' ', parameters.testExtraEnvNames) }}; do
           value="${!name}"
@@ -455,8 +438,6 @@ jobs:
           fi
           EXTRA_ARGS+=(-e "$name=$value")
         done
-        # extraEnv entries are exported with a K6_EXTRA_ prefix (see env
-        # below) so they can be enumerated here without knowing their keys.
         for prefixed in $(compgen -e | grep '^K6_EXTRA_' || true); do
           value="${!prefixed}"
           if [ -n "$value" ]; then
