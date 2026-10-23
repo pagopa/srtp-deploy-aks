@@ -379,10 +379,14 @@ jobs:
               -e TARGET_REQUESTS="$TARGET_REQUESTS" \
               "${EXTRA_ARGS[@]}"
 
-            # Ensure resourceIds.json is reachable in script/ if created in json-file/
+            # Ensure resourceIds.json / resourceIds-cancel.json is reachable in script/ if created in json-file/
             if [ -f "json-file/$(appName)/resourceIds.json" ]; then
               mkdir -p script
               cp "json-file/$(appName)/resourceIds.json" script/resourceIds.json
+            fi
+            if [ -f "json-file/$(appName)/resourceIds-cancel.json" ]; then
+              mkdir -p script
+              cp "json-file/$(appName)/resourceIds-cancel.json" script/resourceIds-cancel.json
             fi
           displayName: 'Seed test data for $(appName)'
           env:
@@ -452,10 +456,17 @@ jobs:
         # includes graphs when the run lasts > 3x this period, and short
         # smoke-test runs (a few seconds) would otherwise get an empty/skipped
         # report ("test run was short, report generation was skipped").
+        RTP_SP_ID_VAL="${RTP_SP_ID:-$DEBTOR_SERVICE_PROVIDER_ID}"
+        if [[ "$RTP_SP_ID_VAL" == '$('* ]]; then
+          RTP_SP_ID_VAL="$DEBTOR_SERVICE_PROVIDER_ID"
+        fi
+
+        set +e
         K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=$(appName)-dashboard-report.html K6_WEB_DASHBOARD_PERIOD=500ms \
         k6 run "tests/$(appName)/$TEST_SCRIPT" \
           -e ENVIRONMENT="$ENVIRONMENT" \
           -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
+          -e RTP_SP_ID="$RTP_SP_ID_VAL" \
           -e DEBTOR_SERVICE_PROVIDER_CLIENT_ID="$DEBTOR_SERVICE_PROVIDER_CLIENT_ID" \
           -e DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET="$DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET" \
           -e SCENARIO="$SCENARIO" \
@@ -473,6 +484,15 @@ jobs:
           -e SPIKE_RAMP_DURATION="$SPIKE_RAMP_DURATION" \
           -e SPIKE_HOLD_DURATION="$SPIKE_HOLD_DURATION" \
           "${EXTRA_ARGS[@]}"
+        K6_EXIT=$?
+        set -e
+
+        if [ $K6_EXIT -eq 108 ]; then
+          echo "##[warning] k6 test was aborted early (code 108): resources/data were exhausted before scenario completion."
+        elif [ $K6_EXIT -ne 0 ]; then
+          echo "##[error] k6 test failed with exit code $K6_EXIT."
+          exit $K6_EXIT
+        fi
       displayName: 'Run k6 test: $(appName)/${{ parameters.testScript }}'
       env:
         TEST_SCRIPT: ${{ parameters.testScript }}
@@ -492,6 +512,7 @@ jobs:
         SPIKE_RAMP_DURATION: ${{ parameters.spikeRampDuration }}
         SPIKE_HOLD_DURATION: ${{ parameters.spikeHoldDuration }}
         DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
+        RTP_SP_ID: $(RTP_SP_ID)
         DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
         DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
         ${{ each name in parameters.testExtraEnvNames }}:
