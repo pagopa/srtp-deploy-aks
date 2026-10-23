@@ -131,6 +131,11 @@ parameters:
     type: number
     default: 2000
 
+  - name: seedCoversLoad
+    displayName: 'Raise targetRequests to cover the arrival-rate scenario load (for tests that consume one seeded record per request)'
+    type: boolean
+    default: false
+
   - name: seedBatchSize
     displayName: "Seed script BATCH_SIZE ('default' = seed script default)"
     type: string
@@ -325,6 +330,59 @@ jobs:
               fi
               EXTRA_ARGS+=(-e "BATCH_SIZE=$SEED_BATCH_SIZE")
             fi
+            # Tests that consume one seeded record per request (and abort when
+            # they run out) need at least as many records as the requests of
+            # the arrival-rate scenario: estimate them with the same stages as
+            # buildStressTestScenario/buildSoakTestScenario/buildSpikeTestScenario
+            # in rtp-platform-qa utils.js (k6 interpolates the rate linearly
+            # within each stage), plus a 10% margin.
+            if [[ "$SEED_COVERS_LOAD" == [Tt]rue ]]; then
+              case "$SCENARIO" in
+                stress_test|soak_test|spike_test)
+                  REQUIRED=$(awk -v scenario="$SCENARIO" \
+                    -v rampStart="$RAMP_START_RATE" -v rampPeak="$RAMP_PEAK_RATE" \
+                    -v rampSteps="$RAMP_STEPS" -v rampStep="$RAMP_STEP_DURATION" \
+                    -v soakRate="$SOAK_RATE" -v soakDuration="$SOAK_DURATION" \
+                    -v spikeBase="$SPIKE_BASE_RATE" -v spikePeak="$SPIKE_PEAK_RATE" \
+                    -v spikeRamp="$SPIKE_RAMP_DURATION" -v spikeHold="$SPIKE_HOLD_DURATION" '
+                    # k6 duration string (e.g. 20s, 5m, 1h30m, 500ms) to seconds.
+                    function secs(d,   total, tok, unit) {
+                      while (match(d, /^[0-9.]+(ms|h|m|s)/)) {
+                        tok = substr(d, 1, RLENGTH); d = substr(d, RLENGTH + 1)
+                        unit = tok; sub(/^[0-9.]+/, "", unit)
+                        total += (unit == "ms") ? tok / 1000 : (unit == "h") ? tok * 3600 : (unit == "m") ? tok * 60 : tok + 0
+                      }
+                      if (d != "") { print "invalid k6 duration: " d > "/dev/stderr"; exit 1 }
+                      return total
+                    }
+                    function stage(from, to, d) { return (from + to) / 2 * secs(d) }
+                    BEGIN {
+                      if (scenario == "stress_test") {
+                        prev = rampStart
+                        for (i = 1; i <= rampSteps; i++) {
+                          t = int(rampStart + (rampPeak - rampStart) * i / rampSteps + 0.5)
+                          n += stage(prev, t, "1s") + stage(t, t, rampStep)
+                          prev = t
+                        }
+                      } else if (scenario == "soak_test") {
+                        n = soakRate * secs(soakDuration)
+                      } else {
+                        # SPIKE_BASE_HOLD_DURATION is not passed to the test: 10s default.
+                        n = stage(spikeBase, spikeBase, "10s") + 2 * stage(spikeBase, spikePeak, spikeRamp) + stage(spikePeak, spikePeak, spikeHold)
+                      }
+                      printf "%d\n", n * 1.1 + 1
+                    }')
+                  if [ "$REQUIRED" -gt "$TARGET_REQUESTS" ]; then
+                    echo "##[warning]TARGET_REQUESTS=$TARGET_REQUESTS does not cover the $SCENARIO load (~$REQUIRED requests incl. 10% margin): seeding $REQUIRED records"
+                    TARGET_REQUESTS=$REQUIRED
+                  fi
+                  ;;
+                *_fixed_user)
+                  echo "##[warning]$SCENARIO request count depends on the service latency: seeded records ($TARGET_REQUESTS) may run out before the end of the test"
+                  ;;
+              esac
+            fi
+            echo "Seeding $TARGET_REQUESTS records"
             k6 run "script/$SEED_SCRIPT" \
               -e ENVIRONMENT="$ENVIRONMENT" \
               -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
@@ -347,6 +405,18 @@ jobs:
             ENVIRONMENT: ${{ parameters.env }}
             TARGET_REQUESTS: ${{ parameters.targetRequests }}
             SEED_BATCH_SIZE: ${{ parameters.seedBatchSize }}
+            SEED_COVERS_LOAD: ${{ parameters.seedCoversLoad }}
+            SCENARIO: ${{ parameters.scenario }}
+            RAMP_START_RATE: ${{ parameters.rampStartRate }}
+            RAMP_PEAK_RATE: ${{ parameters.rampPeakRate }}
+            RAMP_STEPS: ${{ parameters.rampSteps }}
+            RAMP_STEP_DURATION: ${{ parameters.rampStepDuration }}
+            SOAK_RATE: ${{ parameters.soakRate }}
+            SOAK_DURATION: ${{ parameters.soakDuration }}
+            SPIKE_BASE_RATE: ${{ parameters.spikeBaseRate }}
+            SPIKE_PEAK_RATE: ${{ parameters.spikePeakRate }}
+            SPIKE_RAMP_DURATION: ${{ parameters.spikeRampDuration }}
+            SPIKE_HOLD_DURATION: ${{ parameters.spikeHoldDuration }}
             DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
             DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
             DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)

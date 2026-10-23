@@ -24,6 +24,10 @@ jobs:
           appCategory: 'gpd_message'
           testScript: 'gpd-message-finder.js'
           seedScript: 'create-gpd-message.js'
+          # Operations on existing messages (anything but CREATE/UPDATE with
+          # status VALID) use each seeded operation ID once and cannot reuse
+          # it, so the seed must cover every request of the load profile.
+          seedCoversLoad: ${{ not(and(in(parameters.params.extraEnv.OPERATION, 'CREATE', 'UPDATE'), eq(parameters.params.extraEnv.STATUS, 'VALID'))) }}
           # Extra variables passed to the seed and test scripts (keys of the Key Vault secret).
           seedExtraEnvNames:
             - RTP_CONSUMER_CLIENT_ID
