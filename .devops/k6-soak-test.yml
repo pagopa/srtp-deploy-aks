@@ -32,6 +32,7 @@ parameters:
       - takeover
       - callback
       - callback_cancel
+      - gpd_message
       # Add more values here (+ a matching job block below) as new k6 test
       # scripts get wired into this pipeline.
 
@@ -46,14 +47,49 @@ parameters:
     default: '1m'
 
   - name: SEED_DATA
-    displayName: Seed activation data before running the test
+    displayName: Seed data before running the test
     type: boolean
     default: false
 
   - name: TARGET_REQUESTS
-    displayName: Number of activations to seed (only used when SEED_DATA=true)
+    displayName: Number of records to seed (only used when SEED_DATA=true)
     type: string
     default: '2000'
+
+  - name: BATCH_SIZE
+    displayName: Seed requests per batch ('default' = seed script default)
+    type: string
+    default: default
+
+  - name: SEED_COOLDOWN
+    displayName: Pause in seconds between seeding and the test, to let the service cool down (0 = no pause)
+    type: string
+    default: '0'
+
+  - name: GPD_OPERATION
+    displayName: GPD message operation
+    type: string
+    default: CREATE
+    values:
+      - CREATE
+      - UPDATE
+      - DELETE
+
+  - name: GPD_STATUS
+    displayName: GPD message status
+    type: string
+    default: VALID
+    values:
+      - VALID
+      - PAID
+      - EXPIRED
+      - INVALID
+      - DRAFT
+
+  - name: GPD_PSP_TAX_CODE
+    displayName: GPD message PSP tax code, required for UPDATE PAID
+    type: string
+    default: none
 
 variables:
   - ${{ if eq(parameters.ENV, 'dev') }}:
@@ -102,6 +138,8 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: ${{ parameters.SEED_DATA }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
+                seedCooldown: ${{ parameters.SEED_COOLDOWN }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'deactivation') }}:
           - template: templates/targets/k6-deactivation-job.yml
@@ -117,6 +155,8 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: ${{ parameters.SEED_DATA }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
+                seedCooldown: ${{ parameters.SEED_COOLDOWN }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'get_activation') }}:
           - template: templates/targets/k6-get-activation-job.yml
@@ -132,6 +172,8 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: ${{ parameters.SEED_DATA }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
+                seedCooldown: ${{ parameters.SEED_COOLDOWN }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'get_by_fiscal_code') }}:
           - template: templates/targets/k6-get-by-fiscal-code-job.yml
@@ -147,6 +189,8 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: ${{ parameters.SEED_DATA }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
+                seedCooldown: ${{ parameters.SEED_COOLDOWN }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'takeover') }}:
           - template: templates/targets/k6-takeover-job.yml
@@ -162,6 +206,8 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: ${{ parameters.SEED_DATA }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
+                seedCooldown: ${{ parameters.SEED_COOLDOWN }}
 
       - ${{ if eq(parameters.TEST_TARGET, 'callback') }}:
           - template: templates/targets/k6-callback-job.yml
@@ -180,6 +226,11 @@ stages:
 
       - ${{ if or(eq(parameters.TEST_TARGET, 'callback_cancel'), eq(parameters.TEST_TARGET, 'callback-cancel')) }}:
           - template: templates/targets/k6-callback-cancel-job.yml
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
+                seedCooldown: ${{ parameters.SEED_COOLDOWN }}
+
+      - ${{ if eq(parameters.TEST_TARGET, 'gpd_message') }}:
+          - template: templates/targets/k6-gpd-message-job.yml
             parameters:
               params:
                 env: ${{ parameters.ENV }}
@@ -190,7 +241,14 @@ stages:
                 scenario: 'soak_test'
                 soakRate: ${{ parameters.SOAK_RATE }}
                 soakDuration: ${{ parameters.SOAK_DURATION }}
-                seedData: true
+                seedData: ${{ or(parameters.SEED_DATA, not(and(in(parameters.GPD_OPERATION, 'CREATE', 'UPDATE'), eq(parameters.GPD_STATUS, 'VALID')))) }}
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
+                seedCooldown: ${{ parameters.SEED_COOLDOWN }}
+                extraEnv:
+                  OPERATION: ${{ parameters.GPD_OPERATION }}
+                  STATUS: ${{ parameters.GPD_STATUS }}
+                  ${{ if ne(parameters.GPD_PSP_TAX_CODE, 'none') }}:
+                    PSP_TAX_CODE: ${{ parameters.GPD_PSP_TAX_CODE }}
       # Add more ${{ if eq(parameters.TEST_TARGET, '...') }} blocks here for
       # future endpoints, referencing their target template.
