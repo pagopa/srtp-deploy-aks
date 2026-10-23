@@ -245,9 +245,25 @@ stages:
                 rampStepDuration: ${{ parameters.RAMP_STEP_DURATION }}
                 seedData: true
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
+                seedCooldown: ${{ parameters.SEED_COOLDOWN }}
 
       - ${{ if or(eq(parameters.TEST_TARGET, 'callback_cancel'), eq(parameters.TEST_TARGET, 'callback-cancel')) }}:
           - template: templates/targets/k6-callback-cancel-job.yml
+            parameters:
+              params:
+                env: ${{ parameters.ENV }}
+                agentPoolName: $(agentPoolName)
+                azureServiceConnection: $(azureServiceConnectionName)
+                keyVaultName: $(keyVaultName)
+                testsBranch: ${{ parameters.TESTS_BRANCH }}
+                scenario: 'stress_test'
+                rampStartRate: ${{ parameters.RAMP_START_RATE }}
+                rampPeakRate: ${{ parameters.RAMP_PEAK_RATE }}
+                rampSteps: ${{ parameters.RAMP_STEPS }}
+                rampStepDuration: ${{ parameters.RAMP_STEP_DURATION }}
+                seedData: true
+                targetRequests: ${{ parameters.TARGET_REQUESTS }}
                 seedBatchSize: ${{ parameters.BATCH_SIZE }}
                 seedCooldown: ${{ parameters.SEED_COOLDOWN }}
 

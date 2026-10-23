@@ -223,9 +223,23 @@ stages:
                 soakDuration: ${{ parameters.SOAK_DURATION }}
                 seedData: true
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
+                seedCooldown: ${{ parameters.SEED_COOLDOWN }}
 
       - ${{ if or(eq(parameters.TEST_TARGET, 'callback_cancel'), eq(parameters.TEST_TARGET, 'callback-cancel')) }}:
           - template: templates/targets/k6-callback-cancel-job.yml
+            parameters:
+              params:
+                env: ${{ parameters.ENV }}
+                agentPoolName: $(agentPoolName)
+                azureServiceConnection: $(azureServiceConnectionName)
+                keyVaultName: $(keyVaultName)
+                testsBranch: ${{ parameters.TESTS_BRANCH }}
+                scenario: 'soak_test'
+                soakRate: ${{ parameters.SOAK_RATE }}
+                soakDuration: ${{ parameters.SOAK_DURATION }}
+                seedData: true
+                targetRequests: ${{ parameters.TARGET_REQUESTS }}
                 seedBatchSize: ${{ parameters.BATCH_SIZE }}
                 seedCooldown: ${{ parameters.SEED_COOLDOWN }}
 

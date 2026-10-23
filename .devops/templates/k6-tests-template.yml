@@ -482,7 +482,8 @@ jobs:
           -e SPIKE_BASE_RATE="$SPIKE_BASE_RATE" \
           -e SPIKE_PEAK_RATE="$SPIKE_PEAK_RATE" \
           -e SPIKE_RAMP_DURATION="$SPIKE_RAMP_DURATION" \
-          -e SPIKE_HOLD_DURATION="$SPIKE_HOLD_DURATION"
+          -e SPIKE_HOLD_DURATION="$SPIKE_HOLD_DURATION" \
+          "${EXTRA_ARGS[@]}"
         K6_EXIT=$?
         set -e
 
@@ -492,8 +493,6 @@ jobs:
           echo "##[error] k6 test failed with exit code $K6_EXIT."
           exit $K6_EXIT
         fi
-          -e SPIKE_HOLD_DURATION="$SPIKE_HOLD_DURATION" \
-          "${EXTRA_ARGS[@]}"
       displayName: 'Run k6 test: $(appName)/${{ parameters.testScript }}'
       env:
         TEST_SCRIPT: ${{ parameters.testScript }}
