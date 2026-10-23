@@ -1,0 +1,31 @@
+parameters:
+  - name: params
+    type: object
+    default: {}
+
+jobs:
+  - ${{ if and(eq(parameters.params.extraEnv.OPERATION, 'UPDATE'), eq(parameters.params.extraEnv.STATUS, 'PAID'), eq(coalesce(parameters.params.extraEnv.PSP_TAX_CODE, ''), '')) }}:
+      - job: k6_gpd_message
+        displayName: '⚡ k6 gpd_message'
+        steps:
+          - checkout: none
+          - script: |
+              echo "##[error]GPD_PSP_TAX_CODE is required for OPERATION=UPDATE STATUS=PAID"
+              exit 1
+            displayName: 'Validate GPD message parameters'
+
+  - ${{ else }}:
+      - template: ../k6-tests-template.yml
+        parameters:
+          ${{ insert }}: ${{ parameters.params }}
+          appsList: ['rtp-sender']
+          appCategory: 'gpd_message'
+          testScript: 'gpd-message-finder.js'
+          seedScript: 'create-gpd-message.js'
+          seedCoversLoad: ${{ not(and(in(parameters.params.extraEnv.OPERATION, 'CREATE', 'UPDATE'), eq(parameters.params.extraEnv.STATUS, 'VALID'))) }}
+          seedExtraEnvNames:
+            - RTP_CONSUMER_CLIENT_ID
+            - RTP_CONSUMER_CLIENT_SECRET
+          testExtraEnvNames:
+            - RTP_CONSUMER_CLIENT_ID
+            - RTP_CONSUMER_CLIENT_SECRET

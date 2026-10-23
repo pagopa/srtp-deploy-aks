@@ -102,7 +102,7 @@ parameters:
     default: '30s'
 
   - name: seedData
-    displayName: 'Seed activation data before running the test'
+    displayName: 'Seed test data before running the test'
     type: boolean
     default: false
 
@@ -116,10 +116,35 @@ parameters:
     type: object
     default: []
 
+  - name: testExtraEnvNames
+    displayName: 'Extra pipeline variables (names) passed as -e to the test script'
+    type: object
+    default: []
+
+  - name: extraEnv
+    displayName: 'Extra plain key/value pairs passed as -e to both the seed and the test scripts'
+    type: object
+    default: {}
+
   - name: targetRequests
     displayName: 'Number of records to seed (only used when seedData=true)'
     type: number
     default: 2000
+
+  - name: seedCoversLoad
+    displayName: 'Raise targetRequests to cover the arrival-rate scenario load (for tests that consume one seeded record per request)'
+    type: boolean
+    default: false
+
+  - name: seedBatchSize
+    displayName: "Seed script BATCH_SIZE ('default' = seed script default)"
+    type: string
+    default: 'default'
+
+  - name: seedCooldown
+    displayName: 'Pause in seconds between seeding and the test (0 = no pause)'
+    type: string
+    default: '0'
 
   - name: k6Version
     displayName: 'k6 version'
@@ -288,6 +313,64 @@ jobs:
               fi
               EXTRA_ARGS+=(-e "$name=$value")
             done
+            for prefixed in $(compgen -e | grep '^K6_EXTRA_' || true); do
+              value="${!prefixed}"
+              if [ -n "$value" ]; then
+                EXTRA_ARGS+=(-e "${prefixed#K6_EXTRA_}=$value")
+              fi
+            done
+            if [ "$SEED_BATCH_SIZE" != "default" ]; then
+              if ! [[ "$SEED_BATCH_SIZE" =~ ^[1-9][0-9]*$ ]]; then
+                echo "##[error]BATCH_SIZE must be a positive integer or 'default', got: $SEED_BATCH_SIZE"
+                exit 1
+              fi
+              EXTRA_ARGS+=(-e "BATCH_SIZE=$SEED_BATCH_SIZE")
+            fi
+            if [[ "$SEED_COVERS_LOAD" == [Tt]rue ]]; then
+              case "$SCENARIO" in
+                stress_test|soak_test|spike_test)
+                  REQUIRED=$(awk -v scenario="$SCENARIO" \
+                    -v rampStart="$RAMP_START_RATE" -v rampPeak="$RAMP_PEAK_RATE" \
+                    -v rampSteps="$RAMP_STEPS" -v rampStep="$RAMP_STEP_DURATION" \
+                    -v soakRate="$SOAK_RATE" -v soakDuration="$SOAK_DURATION" \
+                    -v spikeBase="$SPIKE_BASE_RATE" -v spikePeak="$SPIKE_PEAK_RATE" \
+                    -v spikeRamp="$SPIKE_RAMP_DURATION" -v spikeHold="$SPIKE_HOLD_DURATION" '
+                    function secs(d,   total, tok, unit) {
+                      while (match(d, /^[0-9.]+(ms|h|m|s)/)) {
+                        tok = substr(d, 1, RLENGTH); d = substr(d, RLENGTH + 1)
+                        unit = tok; sub(/^[0-9.]+/, "", unit)
+                        total += (unit == "ms") ? tok / 1000 : (unit == "h") ? tok * 3600 : (unit == "m") ? tok * 60 : tok + 0
+                      }
+                      if (d != "") { print "invalid k6 duration: " d > "/dev/stderr"; exit 1 }
+                      return total
+                    }
+                    function stage(from, to, d) { return (from + to) / 2 * secs(d) }
+                    BEGIN {
+                      if (scenario == "stress_test") {
+                        prev = rampStart
+                        for (i = 1; i <= rampSteps; i++) {
+                          t = int(rampStart + (rampPeak - rampStart) * i / rampSteps + 0.5)
+                          n += stage(prev, t, "1s") + stage(t, t, rampStep)
+                          prev = t
+                        }
+                      } else if (scenario == "soak_test") {
+                        n = soakRate * secs(soakDuration)
+                      } else {
+                        n = stage(spikeBase, spikeBase, "10s") + 2 * stage(spikeBase, spikePeak, spikeRamp) + stage(spikePeak, spikePeak, spikeHold)
+                      }
+                      printf "%d\n", n * 1.1 + 1
+                    }')
+                  if [ "$REQUIRED" -gt "$TARGET_REQUESTS" ]; then
+                    echo "##[warning]TARGET_REQUESTS=$TARGET_REQUESTS does not cover the $SCENARIO load (~$REQUIRED requests incl. 10% margin): seeding $REQUIRED records"
+                    TARGET_REQUESTS=$REQUIRED
+                  fi
+                  ;;
+                *_fixed_user)
+                  echo "##[warning]$SCENARIO request count depends on the service latency: seeded records ($TARGET_REQUESTS) may run out before the end of the test"
+                  ;;
+              esac
+            fi
+            echo "Seeding $TARGET_REQUESTS records"
             k6 run "script/$SEED_SCRIPT" \
               -e ENVIRONMENT="$ENVIRONMENT" \
               -e DEBTOR_SERVICE_PROVIDER_ID="$DEBTOR_SERVICE_PROVIDER_ID" \
@@ -309,15 +392,58 @@ jobs:
             SEED_SCRIPT: ${{ parameters.seedScript }}
             ENVIRONMENT: ${{ parameters.env }}
             TARGET_REQUESTS: ${{ parameters.targetRequests }}
+            SEED_BATCH_SIZE: ${{ parameters.seedBatchSize }}
+            SEED_COVERS_LOAD: ${{ parameters.seedCoversLoad }}
+            SCENARIO: ${{ parameters.scenario }}
+            RAMP_START_RATE: ${{ parameters.rampStartRate }}
+            RAMP_PEAK_RATE: ${{ parameters.rampPeakRate }}
+            RAMP_STEPS: ${{ parameters.rampSteps }}
+            RAMP_STEP_DURATION: ${{ parameters.rampStepDuration }}
+            SOAK_RATE: ${{ parameters.soakRate }}
+            SOAK_DURATION: ${{ parameters.soakDuration }}
+            SPIKE_BASE_RATE: ${{ parameters.spikeBaseRate }}
+            SPIKE_PEAK_RATE: ${{ parameters.spikePeakRate }}
+            SPIKE_RAMP_DURATION: ${{ parameters.spikeRampDuration }}
+            SPIKE_HOLD_DURATION: ${{ parameters.spikeHoldDuration }}
             DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
             DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
             DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
             ${{ each name in parameters.seedExtraEnvNames }}:
               ${{ name }}: $(${{ name }})
+            ${{ each pair in parameters.extraEnv }}:
+              K6_EXTRA_${{ pair.key }}: ${{ pair.value }}
+
+        - ${{ if ne(parameters.seedCooldown, '0') }}:
+            - script: |
+                set -e
+                if ! [[ "$SEED_COOLDOWN" =~ ^[1-9][0-9]*$ ]]; then
+                  echo "##[error]SEED_COOLDOWN must be a positive integer number of seconds or 0, got: $SEED_COOLDOWN"
+                  exit 1
+                fi
+                echo "Waiting ${SEED_COOLDOWN}s before running the test..."
+                sleep "$SEED_COOLDOWN"
+              displayName: 'Cooldown after seed (${{ parameters.seedCooldown }}s)'
+              env:
+                SEED_COOLDOWN: ${{ parameters.seedCooldown }}
 
     - script: |
         set -e
         cd $(Pipeline.Workspace)/rtp-platform-qa/performance-tests
+        EXTRA_ARGS=()
+        for name in ${{ join(' ', parameters.testExtraEnvNames) }}; do
+          value="${!name}"
+          if [ -z "$value" ] || [[ "$value" == '$('* ]]; then
+            echo "##[error]Variable $name is not defined: add it to the Key Vault secret"
+            exit 1
+          fi
+          EXTRA_ARGS+=(-e "$name=$value")
+        done
+        for prefixed in $(compgen -e | grep '^K6_EXTRA_' || true); do
+          value="${!prefixed}"
+          if [ -n "$value" ]; then
+            EXTRA_ARGS+=(-e "${prefixed#K6_EXTRA_}=$value")
+          fi
+        done
         # K6_WEB_DASHBOARD_EXPORT produces a self-contained static HTML report
         # (same interactive dashboard/charts as the local `--out web-dashboard`
         # mode), instead of the live server at :5665 which is useless on a
@@ -345,7 +471,8 @@ jobs:
           -e SPIKE_BASE_RATE="$SPIKE_BASE_RATE" \
           -e SPIKE_PEAK_RATE="$SPIKE_PEAK_RATE" \
           -e SPIKE_RAMP_DURATION="$SPIKE_RAMP_DURATION" \
-          -e SPIKE_HOLD_DURATION="$SPIKE_HOLD_DURATION"
+          -e SPIKE_HOLD_DURATION="$SPIKE_HOLD_DURATION" \
+          "${EXTRA_ARGS[@]}"
       displayName: 'Run k6 test: $(appName)/${{ parameters.testScript }}'
       env:
         TEST_SCRIPT: ${{ parameters.testScript }}
@@ -367,6 +494,10 @@ jobs:
         DEBTOR_SERVICE_PROVIDER_ID: $(DEBTOR_SERVICE_PROVIDER_ID)
         DEBTOR_SERVICE_PROVIDER_CLIENT_ID: $(DEBTOR_SERVICE_PROVIDER_CLIENT_ID)
         DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET: $(DEBTOR_SERVICE_PROVIDER_CLIENT_SECRET)
+        ${{ each name in parameters.testExtraEnvNames }}:
+          ${{ name }}: $(${{ name }})
+        ${{ each pair in parameters.extraEnv }}:
+          K6_EXTRA_${{ pair.key }}: ${{ pair.value }}
 
     - script: |
         mkdir -p "$(Build.ArtifactStagingDirectory)/k6-results/$(appName)"
