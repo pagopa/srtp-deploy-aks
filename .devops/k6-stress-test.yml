@@ -26,6 +26,7 @@ parameters:
     default: activation
     values:
       - activation
+      - activation_flow
       - deactivation
       - get_activation
       - get_by_fiscal_code
@@ -136,6 +137,25 @@ stages:
     jobs:
       - ${{ if eq(parameters.TEST_TARGET, 'activation') }}:
           - template: templates/targets/k6-activation-job.yml
+            parameters:
+              params:
+                env: ${{ parameters.ENV }}
+                agentPoolName: $(agentPoolName)
+                azureServiceConnection: $(azureServiceConnectionName)
+                keyVaultName: $(keyVaultName)
+                testsBranch: ${{ parameters.TESTS_BRANCH }}
+                scenario: 'stress_test'
+                rampStartRate: ${{ parameters.RAMP_START_RATE }}
+                rampPeakRate: ${{ parameters.RAMP_PEAK_RATE }}
+                rampSteps: ${{ parameters.RAMP_STEPS }}
+                rampStepDuration: ${{ parameters.RAMP_STEP_DURATION }}
+                seedData: ${{ parameters.SEED_DATA }}
+                targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
+                seedCooldown: ${{ parameters.SEED_COOLDOWN }}
+
+      - ${{ if or(eq(parameters.TEST_TARGET, 'activation_flow'), eq(parameters.TEST_TARGET, 'activation-flow')) }}:
+          - template: templates/targets/k6-activation-flow-job.yml
             parameters:
               params:
                 env: ${{ parameters.ENV }}
