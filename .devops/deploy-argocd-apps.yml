@@ -33,7 +33,7 @@ parameters:
     - rtp-activator
     - rtp-sender
     - rtp-consumer
-    - rtp-payees
+    - rtp-registry
     - rtp-sender-v2
 
 - name: APPS_MID

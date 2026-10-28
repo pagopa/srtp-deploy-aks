@@ -7,13 +7,16 @@ microservice-chart:
       - ip: "20.103.162.3"
         hostnames:
           - "api-rtp.cstar.pagopa.it"
+      - ip: "10.20.0.4"
+        hostnames:
+          - "cstar-p-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
 
 #  podDisruptionBudget:
 #    create: true
 #    minAvailable: 2
 
   image:
-    repository: ghcr.io/pagopa/rtp-payees
+    repository: ghcr.io/pagopa/rtp-registry
     tag: v1.7.2
     pullPolicy: Always
 
@@ -41,8 +44,16 @@ microservice-chart:
   #          value: "60"
 
   envConfig:
-    BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/payees/"
+    MONGODB_RETRY_MAX_ATTEMPTS: "3"
+    MONGODB_RETRY_INITIAL_BACKOFF: "PT0.2S"
+    MONGODB_RETRY_MAX_BACKOFF: "PT5S"
+    MONGODB_RETRY_JITTER: "0.5"
+    BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/registry/"
     BACKOFFICE_BASE_URL: "https://api.platform.pagopa.it/backoffice/pagopa/services/v1"
+    APPLICATIONINSIGHTS_EXPORTER_MAX_CONNECTIONS: "50"
+    APPLICATIONINSIGHTS_EXPORTER_MAX_IDLE_TIME: "PT15S"
+    APPLICATIONINSIGHTS_EXPORTER_MAX_LIFE_TIME: "PT55S"
+    APPLICATIONINSIGHTS_EXPORTER_EVICT_IN_BACKGROUND: "PT10S"
 
   keyvault:
     name: "cstar-p-itn-srtp-kv"
