@@ -1,0 +1,12 @@
+parameters:
+  - name: params
+    type: object
+    default: {}
+
+jobs:
+  - template: ../k6-tests-template.yml
+    parameters:
+      ${{ insert }}: ${{ parameters.params }}
+      appsList: ['rtp-activator']
+      appCategory: 'activation_flow'
+      testScript: 'activation-flow.js'
