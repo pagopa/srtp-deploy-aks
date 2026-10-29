@@ -1,0 +1,21 @@
+parameters:
+  - name: params
+    type: object
+    default: {}
+
+jobs:
+  - template: ../k6-tests-template.yml
+    parameters:
+      ${{ insert }}: ${{ parameters.params }}
+      appsList: ['rtp-sender']
+      appCategory: 'delivery_status'
+      testScript: 'delivery-status-finder.js'
+      seedScript: 'create-delivery-status.js'
+      seedExtraEnvNames:
+        - RTP_CONSUMER_CLIENT_ID
+        - RTP_CONSUMER_CLIENT_SECRET
+        - DEBTOR_FISCAL_CODE
+      extraEnv:
+        ${{ if parameters.params.extraEnv }}:
+          ${{ insert }}: ${{ parameters.params.extraEnv }}
+        EC_TAX_CODE: ${{ coalesce(parameters.params.extraEnv.EC_TAX_CODE, '77777777777') }}
