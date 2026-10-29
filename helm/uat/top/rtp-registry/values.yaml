@@ -59,5 +59,5 @@ postman-test:
   run: true
   repoName: rtp-registry
   dir: postman
-  collectionName: "rtp-payees-E2E.postman_collection.json"
+  collectionName: "rtp-registry-E2E.postman_collection.json"
   envVariablesFile: "rtp_uat.postman_environment.json" #inside azdo secure files
