@@ -1,6 +1,6 @@
 apiVersion: v2
-name: rtp-payees
-description: SRTP PAYEES
+name: rtp-registry
+description: SRTP REGISTRY
 type: application
 version: 1.0.0
 appVersion: 1.0.0

@@ -35,7 +35,7 @@ microservice-chart:
 
   ingress:
     create: true
-    path: /rtppayees(/|$)(.*)
+    path: /rtpregistry(/|$)(.*)
     rewriteTarget: /$2
     servicePort: 8080
     # proxyBodySize: 2m
@@ -66,7 +66,8 @@ microservice-chart:
 
   envConfig:
     TZ: "Europe/Rome"
-    OTEL_SERVICE_NAME: "rtp-payees"
+    OTEL_SERVICE_NAME: "rtp-registry"
+    DB_NAME: "registry"
     OTEL_TRACES_SAMPLER: "always_on"
     LOG_LEVEL_ROOT: "INFO"
     LOG_LEVEL_PAGOPA: "INFO"
@@ -77,12 +78,16 @@ microservice-chart:
     LOG_LEVEL_SPRING_DATA: "WARN"
     LOG_LEVEL_SPRING_BOOT: "WARN"
     LOG_LEVEL_SPRING_BOOT_AVAILABILITY: "WARN"
+    LOG_LEVEL_SPRING_KAFKA: "WARN"
     LOG_LEVEL_IO_SWAGGER: "WARN"
     LOG_LEVEL_JAVAX_PERSISTENCE: "WARN"
     LOG_LEVEL_ORG_HIBERNATE: "WARN"
     LOG_LEVEL_MONGODB_DRIVER: "WARN"
+    LOG_LEVEL_IO_NETTY_RESOLVER_DNS: "INFO"
+    LOG_LEVEL_REACTOR_NETTY_HTTP_CLIENT_CONNECT: "ERROR"
 
   envSecret:
+    COSMOS_ACCOUNT_RTP_CONNECTION_STRING: "cosmosdb-account-rtp-primary-connection-string"
     APPLICATIONINSIGHTS_CONNECTION_STRING: "appinsights-connection-string"
     BACKOFFICE_API_KEY: "backoffice-api-key"
 

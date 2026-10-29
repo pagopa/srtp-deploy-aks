@@ -7,9 +7,12 @@ microservice-chart:
       - ip: "20.31.11.237"
         hostnames:
           - "api-rtp.uat.cstar.pagopa.it"
+      - ip: "10.20.0.84"
+        hostnames:
+          - "cstar-u-itn-srtp-cosmos-account.mongo.cosmos.azure.com"
 
   image:
-    repository: ghcr.io/pagopa/rtp-payees
+    repository: ghcr.io/pagopa/rtp-registry
     tag: snapshot-main
     pullPolicy: Always
 
@@ -37,8 +40,16 @@ microservice-chart:
 #          value: "60"
 
   envConfig:
-    BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/payees/"
+    MONGODB_RETRY_MAX_ATTEMPTS: "3"
+    MONGODB_RETRY_INITIAL_BACKOFF: "PT0.2S"
+    MONGODB_RETRY_MAX_BACKOFF: "PT2S"
+    MONGODB_RETRY_JITTER: "0"
+    BASE_URL: "https://api-rtp.uat.cstar.pagopa.it/rtp/registry/"
     BACKOFFICE_BASE_URL: "https://api.uat.platform.pagopa.it/backoffice/pagopa/services/v1"
+    APPLICATIONINSIGHTS_EXPORTER_MAX_CONNECTIONS: "50"
+    APPLICATIONINSIGHTS_EXPORTER_MAX_IDLE_TIME: "PT15S"
+    APPLICATIONINSIGHTS_EXPORTER_MAX_LIFE_TIME: "PT55S"
+    APPLICATIONINSIGHTS_EXPORTER_EVICT_IN_BACKGROUND: "PT10S"
 
   keyvault:
     name: "cstar-u-itn-srtp-kv"
@@ -46,7 +57,7 @@ microservice-chart:
 
 postman-test:
   run: true
-  repoName: rtp-payees
+  repoName: rtp-registry
   dir: postman
-  collectionName: "rtp-payees-E2E.postman_collection.json"
+  collectionName: "rtp-registry-E2E.postman_collection.json"
   envVariablesFile: "rtp_uat.postman_environment.json" #inside azdo secure files
