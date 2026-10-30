@@ -14,7 +14,3 @@ jobs:
       seedExtraEnvNames:
         - RTP_CONSUMER_CLIENT_ID
         - RTP_CONSUMER_CLIENT_SECRET
-      extraEnv:
-        ${{ if parameters.params.extraEnv }}:
-          ${{ insert }}: ${{ parameters.params.extraEnv }}
-        EC_TAX_CODE: ${{ coalesce(parameters.params.extraEnv.EC_TAX_CODE, '77777777777') }}
