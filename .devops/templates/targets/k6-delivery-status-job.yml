@@ -14,7 +14,6 @@ jobs:
       seedExtraEnvNames:
         - RTP_CONSUMER_CLIENT_ID
         - RTP_CONSUMER_CLIENT_SECRET
-        - DEBTOR_FISCAL_CODE
       extraEnv:
         ${{ if parameters.params.extraEnv }}:
           ${{ insert }}: ${{ parameters.params.extraEnv }}
