@@ -35,6 +35,7 @@ parameters:
       - callback
       - callback_cancel
       - gpd_message
+      - delivery_status
       # Add more values here (+ a matching job block below) as new k6 test
       # scripts get wired into this pipeline.
 
@@ -297,5 +298,23 @@ stages:
                   STATUS: ${{ parameters.GPD_STATUS }}
                   ${{ if ne(parameters.GPD_PSP_TAX_CODE, 'none') }}:
                     PSP_TAX_CODE: ${{ parameters.GPD_PSP_TAX_CODE }}
+
+      - ${{ if or(eq(parameters.TEST_TARGET, 'delivery_status'), eq(parameters.TEST_TARGET, 'delivery-status')) }}:
+          - template: templates/targets/k6-delivery-status-job.yml
+            parameters:
+              params:
+                env: ${{ parameters.ENV }}
+                agentPoolName: $(agentPoolName)
+                azureServiceConnection: $(azureServiceConnectionName)
+                keyVaultName: $(keyVaultName)
+                testsBranch: ${{ parameters.TESTS_BRANCH }}
+                scenario: 'custom'
+                vuCount: ${{ parameters.VU_COUNT }}
+                iterations: ${{ parameters.ITERATIONS }}
+                sleepIter: ${{ parameters.SLEEP_ITER }}
+                seedData: ${{ parameters.SEED_DATA }}
+                targetRequests: ${{ parameters.TARGET_REQUESTS }}
+                seedBatchSize: ${{ parameters.BATCH_SIZE }}
+                seedCooldown: ${{ parameters.SEED_COOLDOWN }}
       # Add more ${{ if eq(parameters.TEST_TARGET, '...') }} blocks here for
       # future endpoints, referencing their target template.
