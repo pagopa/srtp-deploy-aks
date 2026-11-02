@@ -35,6 +35,7 @@ parameters:
       - callback_cancel
       - gpd_message
       - delivery_status
+      - payees
       # Add more values here (+ a matching job block below) as new k6 test
       # scripts get wired into this pipeline.
 
@@ -330,5 +331,20 @@ stages:
                 targetRequests: ${{ parameters.TARGET_REQUESTS }}
                 seedBatchSize: ${{ parameters.BATCH_SIZE }}
                 seedCooldown: ${{ parameters.SEED_COOLDOWN }}
+
+      - ${{ if or(eq(parameters.TEST_TARGET, 'payees'), eq(parameters.TEST_TARGET, 'payee')) }}:
+          - template: templates/targets/k6-payees-job.yml
+            parameters:
+              params:
+                env: ${{ parameters.ENV }}
+                agentPoolName: $(agentPoolName)
+                azureServiceConnection: $(azureServiceConnectionName)
+                keyVaultName: $(keyVaultName)
+                testsBranch: ${{ parameters.TESTS_BRANCH }}
+                scenario: 'stress_test'
+                rampStartRate: ${{ parameters.RAMP_START_RATE }}
+                rampPeakRate: ${{ parameters.RAMP_PEAK_RATE }}
+                rampSteps: ${{ parameters.RAMP_STEPS }}
+                rampStepDuration: ${{ parameters.RAMP_STEP_DURATION }}
       # Add more ${{ if eq(parameters.TEST_TARGET, '...') }} blocks here for
       # future endpoints, referencing their target template.
