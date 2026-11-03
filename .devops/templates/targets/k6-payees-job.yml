@@ -1,0 +1,16 @@
+parameters:
+  - name: params
+    type: object
+    default: {}
+
+jobs:
+  - template: ../k6-tests-template.yml
+    parameters:
+      ${{ insert }}: ${{ parameters.params }}
+      appsList: ['service-registry']
+      appCategory: 'payees'
+      testScript: 'payees.js'
+      seedData: false
+      testExtraEnvNames:
+        - PAGOPA_INTEGRATION_PAYEE_REGISTRY_CLIENT_ID
+        - PAGOPA_INTEGRATION_PAYEE_REGISTRY_CLIENT_SECRET
