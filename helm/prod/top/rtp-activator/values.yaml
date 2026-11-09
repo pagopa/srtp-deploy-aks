@@ -35,8 +35,8 @@ microservice-chart:
     cooldownPeriod: 300
     triggers:
       - type: cpu
+        metricType: Utilization
         metadata:
-          type: Utilization
           value: "60"
 
   podDisruptionBudget:
