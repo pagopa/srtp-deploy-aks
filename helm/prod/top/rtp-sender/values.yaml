@@ -14,7 +14,7 @@ microservice-chart:
 
   image:
     repository: ghcr.io/pagopa/rtp-sender
-    tag: v2.11.8
+    tag: v2.11.10
     pullPolicy: Always
 
   ingress:
