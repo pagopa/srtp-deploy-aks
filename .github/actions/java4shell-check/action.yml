@@ -1,9 +1,6 @@
 name: Java4Shell check
 description: Checks whether the GraalVM toolchain Base64 decoder and a container image binary are affected by CVE-2026-114938.
 
-on:
-  push:
-
 inputs:
   image:
     description: Container image to inspect, e.g. ghcr.io/pagopa/rtp-registry:snapshot-main
@@ -31,20 +28,45 @@ runs:
           fi
         done
         echo "cpu_affected=$affected" >> "$GITHUB_OUTPUT"
+        if [ "$affected" != "true" ]; then
+          echo "::warning::CPU lacks one or more of avx512f/avx512bw/avx512vbmi/bmi2: results on this runner will be inconclusive"
+        fi
+
+    - name: Inspect target image binary
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.image }}
+      run: |
+        docker pull "$IMAGE"
+        cid=$(docker create "$IMAGE")
+        docker cp "$cid:/work/application" "$RUNNER_TEMP/application"
+        docker rm "$cid" >/dev/null
+        echo "HotSpot/libjvm markers in /work/application (informational only): $(strings "$RUNNER_TEMP/application" | grep -c -i -E 'hotspot|libjvm' || true)"
 
     - name: Control run on JVM (validates the harness)
+      id: jvm
       shell: bash
-      continue-on-error: true
       env:
         BUILDER: ${{ inputs.builder-image }}
       run: |
-        docker run --rm -v "$GITHUB_ACTION_PATH:/poc:ro" --entrypoint java "$BUILDER" /poc/Base64Trigger.java
+        set +e
+        out=$(docker run --rm -v "$GITHUB_ACTION_PATH:/poc:ro" --entrypoint java "$BUILDER" /poc/Base64Trigger.java 2>&1)
+        rc=$?
+        set -e
+        echo "$out"
+        if echo "$out" | grep -qx 'REPRODUCED'; then
+          echo "jvm_reproduced=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "jvm_reproduced=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::JVM control run did not reproduce the bug (exit $rc): a native NOT REPRODUCED result will not be conclusive"
+        fi
 
     - name: Native-compile the PoC and run it
       shell: bash
       env:
         BUILDER: ${{ inputs.builder-image }}
         CPU_AFFECTED: ${{ steps.cpu.outputs.cpu_affected }}
+        JVM_REPRODUCED: ${{ steps.jvm.outputs.jvm_reproduced }}
       run: |
         set +e
         out=$(docker run --rm -v "$GITHUB_ACTION_PATH:/poc:ro" --entrypoint sh "$BUILDER" -c '
@@ -61,20 +83,10 @@ runs:
           echo "::error::Native toolchain reproduces CVE-2026-114938"
           exit 1
         fi
-        if echo "$out" | grep -qx 'NOT REPRODUCED' && [ "$CPU_AFFECTED" = "true" ]; then
-          echo "Native toolchain does not reproduce CVE-2026-114938 on this CPU"
+        if echo "$out" | grep -qx 'NOT REPRODUCED' \
+           && [ "$CPU_AFFECTED" = "true" ] && [ "$JVM_REPRODUCED" = "true" ]; then
+          echo "Native toolchain does not reproduce CVE-2026-114938 on this CPU (JVM control reproduced it)"
           exit 0
         fi
-        echo "::warning::Inconclusive: CPU lacks AVX-512 VBMI or the PoC did not complete (exit $rc)"
+        echo "::warning::Inconclusive: cpu_affected=$CPU_AFFECTED jvm_reproduced=$JVM_REPRODUCED native_exit=$rc"
         exit 2
-
-    - name: Inspect target image binary
-      shell: bash
-      env:
-        IMAGE: ${{ inputs.image }}
-      run: |
-        docker pull "$IMAGE"
-        cid=$(docker create "$IMAGE")
-        docker cp "$cid:/work/application" "$RUNNER_TEMP/application"
-        docker rm "$cid" >/dev/null
-        echo "HotSpot/libjvm markers in /work/application: $(strings "$RUNNER_TEMP/application" | grep -c -i -E 'hotspot|libjvm' || true)"
