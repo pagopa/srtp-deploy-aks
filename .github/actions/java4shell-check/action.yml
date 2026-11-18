@@ -1,6 +1,9 @@
 name: Java4Shell check
 description: Checks whether the GraalVM toolchain Base64 decoder and a container image binary are affected by CVE-2026-114938.
 
+on:
+  push:
+
 inputs:
   image:
     description: Container image to inspect, e.g. ghcr.io/pagopa/rtp-registry:snapshot-main
