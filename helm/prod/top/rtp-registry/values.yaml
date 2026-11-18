@@ -44,6 +44,7 @@ microservice-chart:
   #          value: "60"
 
   envConfig:
+    JDK_JAVA_OPTIONS: "-XX:-UseBASE64Intrinsics -XX:UseAVX=2"
     MONGODB_RETRY_MAX_ATTEMPTS: "3"
     MONGODB_RETRY_INITIAL_BACKOFF: "PT0.2S"
     MONGODB_RETRY_MAX_BACKOFF: "PT5S"
