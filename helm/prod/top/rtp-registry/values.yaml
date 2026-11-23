@@ -17,7 +17,7 @@ microservice-chart:
 
   image:
     repository: ghcr.io/pagopa/rtp-registry
-    tag: v1.7.2
+    tag: v2.0.0
     pullPolicy: Always
 
   ingress:
