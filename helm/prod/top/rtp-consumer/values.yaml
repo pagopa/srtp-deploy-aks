@@ -31,7 +31,7 @@ microservice-chart:
 
   image:
     repository: ghcr.io/pagopa/rtp-consumer
-    tag: v1.20.6
+    tag: v1.21.0
     pullPolicy: Always
 
   ingress:
