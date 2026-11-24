@@ -1,0 +1,17 @@
+parameters:
+  - name: params
+    type: object
+    default: {}
+
+jobs:
+  - template: ../k6-tests-template.yml
+    parameters:
+      ${{ insert }}: ${{ parameters.params }}
+      appsList: ['service-registry']
+      appCategory: 'service_registry'
+      testScript: 'service-registry.js'
+      seedData: false
+      testExtraEnvNames:
+        - SERVICE_REGISTRY_READER_CLIENT_ID
+        - SERVICE_REGISTRY_READER_CLIENT_SECRET
+
