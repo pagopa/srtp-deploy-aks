@@ -91,8 +91,6 @@ microservice-chart:
     OTEL_SERVICE_NAME: "rtp-activator"
     DB_NAME: "activation"
     OTEL_TRACES_SAMPLER: "always_on"
-    AZURE_STORAGE_CONTAINER_NAME: "rtp-debtor-service-provider"
-    AZURE_BLOB_NAME: "serviceregistry.json"
     LOG_LEVEL_ROOT: "INFO"
     LOG_LEVEL_PAGOPA: "INFO"
     LOG_LEVEL_SPRING_INTEGRATION: "WARN"
@@ -118,6 +116,8 @@ microservice-chart:
     CLIENT_SECRET_POSTE: "client-secret-poste"
     JKS_TRUST_STORE_PATH: "jks-trust-store-path"
     JKS_TRUST_STORE_PASSWORD: "jks-trust-store-password"
+    READ_SERVICE_REGISTRY_CLIENT_ID: "read-service-registry-client-id"
+    READ_SERVICE_REGISTRY_CLIENT_SECRET: "read-service-registry-client-secret"
 
 
   tolerations:

@@ -52,7 +52,7 @@ microservice-chart:
     BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/activation/activations/"
     SP_BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/rtps/"
     EPC_MOCK_URL: "https://api-rtp.cstar.pagopa.it/rtp/mock"
-    AZURE_STORAGE_ACCOUNT_NAME: "cstarpitnsrtpsa"
+    SERVICE_REGISTRY_BASE_URL: "https://api-rtp.cstar.pagopa.it/rtp/service_providers"
     TAKEOVER_OTP_EXPIRATION: "PT2M"
     TAKEOVER_NOTIFICATION_MAX_CONNECTIONS: "500"
     TAKEOVER_NOTIFICATION_PENDING_QUEUE: "1000"
